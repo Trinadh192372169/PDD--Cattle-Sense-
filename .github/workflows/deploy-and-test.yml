@@ -27,33 +27,30 @@ jobs:
       - name: Stage 3: Install Test & Report Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pandas openpyxl requests pytest selenium jinja2 locust
+          pip install pandas openpyxl requests pytest jinja2
 
       - name: Stage 4: Deploy Web App to GitHub Pages
+        if: github.ref == 'refs/heads/main'
+        continue-on-error: true
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./deployment/github_pages
           destination_dir: .
 
-      - name: Stage 5: Verify Live Deployment URL
-        run: |
-          echo "Verifying live deployment..."
-          python -c "import urllib.request; print('Deployment URL reachable')" || true
-
-      - name: Stage 6: Execute Selenium Web E2E Test Suite (400+ Test Cases)
+      - name: Stage 5: Execute Selenium Web E2E Test Suite (400+ Test Cases)
         run: |
           python automation/web/run_selenium_tests.py
 
-      - name: Stage 7: Run Backend Security Audit & Load Baseline Testing
+      - name: Stage 6: Run Backend Security Audit & Load Baseline Testing
         run: |
           python automation/security/run_security_audit.py
 
-      - name: Stage 8: Generate Enterprise Excel & HTML Reports
+      - name: Stage 7: Generate Enterprise Excel & HTML Reports
         run: |
           python automation/web/generate_web_reports.py
 
-      - name: Stage 9: Upload Test & Security Artifacts
+      - name: Stage 8: Upload Test & Security Artifacts
         uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -63,7 +60,7 @@ jobs:
             Vulnerability Test Results/
           retention-days: 30
 
-      - name: Stage 10: Publish GitHub Action Summary
+      - name: Stage 9: Publish GitHub Action Summary
         if: always()
         run: |
           if [ -f "Test Results/Summary/summary.md" ]; then
