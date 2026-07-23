@@ -10,60 +10,40 @@ on:
 jobs:
   android-e2e-testing:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pages: write
-      id-token: write
 
     steps:
       - name: Stage 1: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Stage 2: Setup Python & Dependencies
+      - name: Stage 2: Setup Python Environment
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Stage 3: Install Test Runner Dependencies
+      - name: Stage 3: Install Test Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install pandas openpyxl requests pytest jinja2
 
-      - name: Stage 4: Verify Appium & Emulator Readiness
-        run: |
-          echo "Appium UIAutomator2 & Android Emulator Environment Ready"
-
-      - name: Stage 5: Execute Appium E2E Test Suite (400+ Test Cases)
+      - name: Stage 4: Execute Appium Mobile E2E Test Suite (400+ Test Cases)
         run: |
           python automation/mobile/run_appium_tests.py
 
-      - name: Stage 6: Generate Excel, HTML & Summary Reports
+      - name: Stage 5: Generate Excel, HTML & Executive Summary Reports
         run: |
           python automation/mobile/generate_mobile_reports.py
 
-      - name: Stage 7: Upload Execution Artifacts
+      - name: Stage 6: Upload Test Artifacts (Excel & HTML Reports)
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: Appium-Mobile-E2E-Reports
-          path: |
-            Test Results/
+          path: Test_Results/
           retention-days: 30
 
-      - name: Stage 8: Publish GitHub Action Summary
+      - name: Stage 7: Publish GitHub Action Step Summary
         if: always()
         run: |
-          if [ -f "Test Results/Summary/summary.md" ]; then
-            cat "Test Results/Summary/summary.md" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "# Appium E2E Test Execution Summary Completed (100% Passed)" >> $GITHUB_STEP_SUMMARY
+          if [ -f "Test_Results/Summary/summary.md" ]; then
+            cat "Test_Results/Summary/summary.md" >> $GITHUB_STEP_SUMMARY
           fi
-
-      - name: Stage 9: Deploy Reports to GitHub Pages
-        if: always() && github.ref == 'refs/heads/main'
-        continue-on-error: true
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./Test Results/HTML
-          destination_dir: reports/latest

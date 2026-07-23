@@ -10,59 +10,44 @@ on:
 jobs:
   deploy-and-test:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pages: write
-      id-token: write
 
     steps:
       - name: Stage 1: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Stage 2: Setup Python
+      - name: Stage 2: Setup Python Environment
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Stage 3: Install Test & Report Dependencies
+      - name: Stage 3: Install Test Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install pandas openpyxl requests pytest jinja2
 
-      - name: Stage 4: Deploy Web App to GitHub Pages
-        if: github.ref == 'refs/heads/main'
-        continue-on-error: true
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./deployment/github_pages
-          destination_dir: .
-
-      - name: Stage 5: Execute Selenium Web E2E Test Suite (400+ Test Cases)
+      - name: Stage 4: Execute Selenium Web E2E Test Suite (400+ Test Cases)
         run: |
           python automation/web/run_selenium_tests.py
 
-      - name: Stage 6: Run Backend Security Audit & Load Baseline Testing
+      - name: Stage 5: Run Backend Security Audit & Baseline Load Testing
         run: |
           python automation/security/run_security_audit.py
 
-      - name: Stage 7: Generate Enterprise Excel & HTML Reports
+      - name: Stage 6: Generate Enterprise Excel & HTML Reports
         run: |
           python automation/web/generate_web_reports.py
 
-      - name: Stage 8: Upload Test & Security Artifacts
+      - name: Stage 7: Upload Test & Security Artifacts
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: Selenium-Web-E2E-Security-Reports
-          path: |
-            Test Results/
-            Vulnerability Test Results/
+          path: Test_Results/
           retention-days: 30
 
-      - name: Stage 9: Publish GitHub Action Summary
+      - name: Stage 8: Publish GitHub Action Step Summary
         if: always()
         run: |
-          if [ -f "Test Results/Summary/summary.md" ]; then
-            cat "Test Results/Summary/summary.md" >> $GITHUB_STEP_SUMMARY
+          if [ -f "Test_Results/Summary/summary.md" ]; then
+            cat "Test_Results/Summary/summary.md" >> $GITHUB_STEP_SUMMARY
           fi

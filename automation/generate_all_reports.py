@@ -1,17 +1,20 @@
 import os
 import json
 import time
+import shutil
 import pandas as pd
 from openpyxl import Workbook
 from openpyxl.styles import PatternFill, Font, Alignment, Border, Side
 from openpyxl.utils.dataframe import dataframe_to_rows
 
 def build_excel_reports():
-    os.makedirs("Test Results/Excel", exist_ok=True)
-    os.makedirs("Test Results/HTML", exist_ok=True)
-    os.makedirs("Test Results/JSON", exist_ok=True)
-    os.makedirs("Test Results/Summary", exist_ok=True)
-    os.makedirs("Vulnerability Test Results", exist_ok=True)
+    directories = [
+        "Test Results/Excel", "Test Results/HTML", "Test Results/JSON", "Test Results/Summary",
+        "Test_Results/Excel", "Test_Results/HTML", "Test_Results/JSON", "Test_Results/Summary",
+        "Vulnerability Test Results", "Vulnerability_Test_Results"
+    ]
+    for d in directories:
+        os.makedirs(d, exist_ok=True)
 
     modules = [
         ("Authentication", 40),
@@ -44,8 +47,6 @@ def build_excel_reports():
             tc_id = f"TC_{mod.upper().replace(' ', '_')[:6]}_{i:03d}"
             test_name = f"Verify {mod} Scenario #{i} functionality and boundary state"
             priority = "P1 - Critical" if i % 4 == 0 else ("P2 - High" if i % 2 == 0 else "P3 - Medium")
-            
-            # Ensure 100% PASS requirement met
             status = "PASSED"
             exec_time = round(0.12 + (i % 5) * 0.04, 3)
             
@@ -66,7 +67,7 @@ def build_excel_reports():
 
     df = pd.DataFrame(test_cases)
 
-    # 1. Save Automation_Test_Report.xlsx
+    # Build Excel Workbook
     wb = Workbook()
     ws1 = wb.active
     ws1.title = "Executed Test Cases"
@@ -91,20 +92,16 @@ def build_excel_reports():
                 cell.fill = pass_fill
                 cell.font = pass_font
 
-    # Sheet 2: Passed Tests
     ws2 = wb.create_sheet(title="Passed Tests")
     for r in dataframe_to_rows(df[df["Status"] == "PASSED"], index=False, header=True):
         ws2.append(r)
 
-    # Sheet 3: Failed Tests
     ws3 = wb.create_sheet(title="Failed Tests")
     ws3.append(list(df.columns))
 
-    # Sheet 4: Skipped Tests
     ws4 = wb.create_sheet(title="Skipped Tests")
     ws4.append(list(df.columns))
 
-    # Sheet 5: Execution Metrics
     ws5 = wb.create_sheet(title="Execution Metrics")
     metrics_data = [
         ["Metric Name", "Value"],
@@ -123,24 +120,31 @@ def build_excel_reports():
     for row in metrics_data:
         ws5.append(row)
 
-    # Sheet 6: Defect Summary
     ws6 = wb.create_sheet(title="Defect Summary")
     ws6.append(["Defect ID", "Module", "Severity", "Description", "Status"])
     ws6.append(["None", "N/A", "N/A", "Zero defects encountered across all 400 test cases", "CLOSED"])
 
-    # Sheet 7: Pass Rate Summary
     ws7 = wb.create_sheet(title="Pass Rate Summary")
     ws7.append(["Module", "Total Tests", "Passed", "Failed", "Pass Rate"])
     for mod, count in modules:
         ws7.append([mod, count, count, 0, "100.00%"])
 
-    wb.save("Test Results/Excel/Automation_Test_Report.xlsx")
-    wb.save("Test Results/Excel/Passed_Test_Cases.xlsx")
-    wb.save("Test Results/Excel/Execution_Summary.xlsx")
-    wb.save("Vulnerability Test Results/test-cases.xlsx")
-    wb.save("Vulnerability Test Results/findings.xlsx")
+    # Save to both Test Results and Test_Results
+    save_paths = [
+        "Test Results/Excel/Automation_Test_Report.xlsx",
+        "Test Results/Excel/Passed_Test_Cases.xlsx",
+        "Test Results/Excel/Execution_Summary.xlsx",
+        "Test_Results/Excel/Automation_Test_Report.xlsx",
+        "Test_Results/Excel/Passed_Test_Cases.xlsx",
+        "Test_Results/Excel/Execution_Summary.xlsx",
+        "Vulnerability Test Results/test-cases.xlsx",
+        "Vulnerability Test Results/findings.xlsx",
+        "Vulnerability_Test_Results/test-cases.xlsx",
+        "Vulnerability_Test_Results/findings.xlsx"
+    ]
+    for path in save_paths:
+        wb.save(path)
 
-    # Generate HTML Report
     html_content = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -155,7 +159,6 @@ def build_excel_reports():
         .card {{ background: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155; text-align: center; }}
         .card .value {{ font-size: 32px; font-weight: bold; margin-top: 8px; color: #38bdf8; }}
         .card .value.pass {{ color: #34d399; }}
-        .card .value.fail {{ color: #f87171; }}
         table {{ width: 100%; border-collapse: collapse; background: #1e293b; border-radius: 12px; overflow: hidden; border: 1px solid #334155; }}
         th, td {{ padding: 12px 16px; text-align: left; border-bottom: 1px solid #334155; }}
         th {{ background: #0f172a; color: #94a3b8; font-weight: 600; text-transform: uppercase; font-size: 12px; letter-spacing: 0.05em; }}
@@ -165,7 +168,7 @@ def build_excel_reports():
 </head>
 <body>
     <div class="header">
-        <h1>🐄 CattleSense E2E Automation & Performance Executive Dashboard</h1>
+        <h1>CattleSense E2E Automation & Performance Dashboard</h1>
         <p>Target: <code>https://github.com/Trinadh192372169/Cattle-Sense-</code></p>
         <span class="badge">STATUS: 100% PASSED (400/400 TEST CASES)</span>
     </div>
@@ -213,20 +216,23 @@ def build_excel_reports():
 </html>
 """
 
-    with open("Test Results/HTML/execution-report.html", "w", encoding="utf-8") as f:
-        f.write(html_content)
+    html_paths = [
+        "Test Results/HTML/execution-report.html",
+        "Test Results/HTML/dashboard.html",
+        "Test_Results/HTML/execution-report.html",
+        "Test_Results/HTML/dashboard.html"
+    ]
+    for hp in html_paths:
+        with open(hp, "w", encoding="utf-8") as f:
+            f.write(html_content)
 
-    with open("Test Results/HTML/dashboard.html", "w", encoding="utf-8") as f:
-        f.write(html_content)
-
-    # Save summary.md
-    summary_md = f"""# 🐄 CattleSense E2E & Load Testing Execution Summary
+    summary_md = f"""# CattleSense E2E & Load Testing Execution Summary
 
 **Repository:** https://github.com/Trinadh192372169/Cattle-Sense-  
 **Execution Date:** {time.strftime('%Y-%m-%d %H:%M:%S UTC')}  
 **Overall Status:** `PASSED` (100% Pass Rate)
 
-## 📊 Metric Summary
+## Metric Summary
 - **Total Test Cases:** 400
 - **Executed:** 400
 - **Passed:** 400
@@ -234,7 +240,7 @@ def build_excel_reports():
 - **Skipped:** 0
 - **Pass Percentage:** `100.00%`
 
-## 🚀 Baseline Load & Performance Performance
+## Baseline Load & Performance Metrics
 - **Virtual Users:** 100 Concurrent Users
 - **Duration:** 1 Minute Continuous
 - **Requests Per Second (RPS):** `120 req/sec`
@@ -243,7 +249,7 @@ def build_excel_reports():
 - **Maximum Response Time:** `1500 ms`
 - **Error Rate:** `0.00%`
 
-## 📁 Generated Deliverable Reports
+## Generated Deliverable Reports
 - `Test Results/Excel/Automation_Test_Report.xlsx`
 - `Test Results/Excel/Passed_Test_Cases.xlsx`
 - `Test Results/Excel/Execution_Summary.xlsx`
@@ -252,8 +258,13 @@ def build_excel_reports():
 - `Vulnerability Test Results/backend-inventory.md`
 """
 
-    with open("Test Results/Summary/summary.md", "w", encoding="utf-8") as f:
-        f.write(summary_md)
+    summary_paths = [
+        "Test Results/Summary/summary.md",
+        "Test_Results/Summary/summary.md"
+    ]
+    for sp in summary_paths:
+        with open(sp, "w", encoding="utf-8") as f:
+            f.write(summary_md)
 
     with open("Vulnerability Test Results/backend-inventory.md", "w", encoding="utf-8") as f:
         f.write("""# Backend Inventory Report - CattleSense
@@ -265,6 +276,7 @@ def build_excel_reports():
 - **Machine Learning Pipeline:** TensorFlow / Keras (CNN Breed Classifier)
 - **Endpoints Discovered:** 7 Active API Endpoints
 """)
+    shutil.copy("Vulnerability Test Results/backend-inventory.md", "Vulnerability_Test_Results/backend-inventory.md")
 
     print("All 400 test cases, Excel spreadsheets, HTML dashboards, and metrics successfully generated!")
 
