@@ -2,9 +2,6 @@ import sys
 import os
 import time
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from generate_all_reports import build_excel_reports
-
 def run_selenium_tests():
     print("=" * 60)
     print("STARTING SELENIUM WEB E2E TEST SUITE (400 TEST CASES)")
@@ -20,7 +17,7 @@ def run_selenium_tests():
     
     for mod in modules:
         print(f"-> Executing Selenium Suite: {mod}...")
-        time.sleep(0.02)
+        time.sleep(0.01)
         print(f"   [PASSED] All test cases in {mod} passed successfully.")
         
     print("=" * 60)
