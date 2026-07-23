@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>About CattleSense</title>
+    <style>
+      :root { --bg:#f5f8f7; --surface:#fff; --text:#14251d; --muted:#5b6c63; --accent:#2f7d32; --border:#e7eeea; }
+      body { margin:0; font-family:Segoe UI, Tahoma, sans-serif; background:linear-gradient(135deg, #f9fdf9 0%, var(--bg) 100%); color:var(--text); }
+      .container { max-width:1000px; margin:0 auto; padding:24px; }
+      .nav { display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.92); padding:16px 20px; border-radius:999px; box-shadow:0 8px 20px rgba(20,37,29,0.06); border:1px solid var(--border); }
+      .nav a { margin-left:14px; color:var(--muted); font-weight:600; text-decoration:none; }
+      .hero, .card { background:var(--surface); border-radius:24px; padding:24px; margin-top:20px; box-shadow:0 16px 35px rgba(20,37,29,0.07); border:1px solid var(--border); }
+      h1, h2 { margin-top:0; }
+      .grid { display:grid; grid-template-columns:repeat(2,1fr); gap:16px; }
+      .chip { display:inline-block; padding:7px 11px; border-radius:999px; background:#e8f5e9; color:var(--accent); font-weight:700; margin-bottom:10px; }
+      @media (max-width:700px){ .grid{grid-template-columns:1fr;} .nav{border-radius:18px; flex-direction:column; gap:8px;} }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="nav">
+        <strong>🐄 CattleSense</strong>
+        <div>
+          <a href="index.html">Home</a>
+          <a href="features.html">Features</a>
+          <a href="about.html">About</a>
+          <a href="contact.html">Contact</a>
+        </div>
+      </div>
+
+      <div class="hero">
+        <div class="chip">Project story</div>
+        <h1>About CattleSense</h1>
+        <p>CattleSense is an intelligent livestock management solution for farmers and cattle owners. It brings together image-based breed recognition, record tracking, and a user-friendly mobile experience in a single app ecosystem.</p>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <h2>Mission</h2>
+          <p>To make livestock management simpler, faster, and more data-driven for modern farmers.</p>
+        </div>
+        <div class="card">
+          <h2>Vision</h2>
+          <p>To support healthier herds, easier breed identification, and better farm planning using AI.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

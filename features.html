@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CattleSense Features</title>
+    <style>
+      :root { --bg:#f5f8f7; --surface:#fff; --text:#14251d; --muted:#5b6c63; --accent:#2f7d32; --border:#e7eeea; }
+      body { margin:0; font-family:Segoe UI, Tahoma, sans-serif; background:linear-gradient(135deg, #f9fdf9 0%, var(--bg) 100%); color:var(--text); }
+      .container { max-width:1100px; margin:0 auto; padding:24px; }
+      .nav { display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.92); padding:16px 20px; border-radius:999px; box-shadow:0 8px 20px rgba(20,37,29,0.06); border:1px solid var(--border); }
+      .nav a { margin-left:14px; color:var(--muted); font-weight:600; text-decoration:none; }
+      .hero, .card { background:var(--surface); border-radius:24px; padding:24px; margin-top:20px; box-shadow:0 16px 35px rgba(20,37,29,0.07); border:1px solid var(--border); }
+      .hero h1 { margin-top:0; }
+      .grid { display:grid; grid-template-columns:repeat(2,1fr); gap:16px; }
+      .card h3 { margin-top:0; }
+      .chip { display:inline-block; padding:7px 11px; border-radius:999px; background:#e8f5e9; color:var(--accent); font-weight:700; margin-bottom:10px; }
+      @media (max-width:700px){ .grid{grid-template-columns:1fr;} .nav{border-radius:18px; flex-direction:column; gap:8px;} }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="nav">
+        <strong>🐄 CattleSense</strong>
+        <div>
+          <a href="index.html">Home</a>
+          <a href="features.html">Features</a>
+          <a href="about.html">About</a>
+          <a href="contact.html">Contact</a>
+        </div>
+      </div>
+
+      <div class="hero">
+        <div class="chip">App capabilities</div>
+        <h1>Everything the app is designed to do</h1>
+        <p>From breed recognition to records and profile management, CattleSense brings the main livestock workflows into one clean experience.</p>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <h3>AI Breed Detection</h3>
+          <p>Identify cattle breeds by capturing or uploading images through the app’s intelligent scanning flow.</p>
+        </div>
+        <div class="card">
+          <h3>Recent Scan History</h3>
+          <p>Review previous results and keep a complete record of breed predictions and confidence levels.</p>
+        </div>
+        <div class="card">
+          <h3>Breed Library</h3>
+          <p>Browse detailed information about many indigenous cattle breeds and their origins.</p>
+        </div>
+        <div class="card">
+          <h3>Profile & Settings</h3>
+          <p>Manage your account, preferences, and app experience from a dedicated profile section.</p>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:20px;">
+        <h3>All breeds included in the app</h3>
+        <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;">
+          <span class="chip">Gir</span>
+          <span class="chip">Sahiwal</span>
+          <span class="chip">Ongole</span>
+          <span class="chip">Red Sindhi</span>
+          <span class="chip">Kangayam</span>
+          <span class="chip">Vechur</span>
+          <span class="chip">Amritmahal</span>
+          <span class="chip">Hallikar</span>
+          <span class="chip">Kankrej</span>
+          <span class="chip">Punganur</span>
+          <span class="chip">Tharparkar</span>
+          <span class="chip">Bachaur</span>
+          <span class="chip">Badri</span>
+          <span class="chip">Belahi</span>
+          <span class="chip">Gangatiri</span>
+          <span class="chip">Gaolao</span>
+          <span class="chip">Nagori</span>
+          <span class="chip">Ponwar</span>
+          <span class="chip">Thutho</span>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

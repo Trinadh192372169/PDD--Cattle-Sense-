@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CattleSense | AI-Powered Livestock Management</title>
+    <meta name="description" content="CattleSense brings AI breed recognition, herd tracking, and smart farm tools together in one impressive mobile-first experience." />
+    <style>
+      :root {
+        --bg: #f5f8f7;
+        --surface: #ffffff;
+        --text: #14251d;
+        --muted: #5b6c63;
+        --accent: #2f7d32;
+        --accent-dark: #215f28;
+        --accent-soft: #e8f5e9;
+        --border: #e7eeea;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #f9fdf9 0%, var(--bg) 100%);
+        color: var(--text);
+        line-height: 1.65;
+      }
+      a { color: inherit; text-decoration: none; }
+      .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+      .nav {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 16px 20px; background: rgba(255,255,255,0.9); backdrop-filter: blur(10px);
+        border: 1px solid var(--border); border-radius: 999px; box-shadow: 0 8px 20px rgba(20, 37, 29, 0.06);
+        position: sticky; top: 16px; z-index: 10;
+      }
+      .brand { font-size: 1.1rem; font-weight: 800; color: var(--accent-dark); }
+      .nav-links a { margin-left: 16px; color: var(--muted); font-weight: 600; }
+      .nav-links a:hover { color: var(--accent); }
+      .hero {
+        display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 24px; align-items: center;
+        padding: 54px 0 26px;
+      }
+      .hero-card, .card, .section-box, .footer {
+        background: var(--surface); border: 1px solid var(--border); border-radius: 24px;
+        box-shadow: 0 20px 45px rgba(20, 37, 29, 0.08);
+      }
+      .scan-panel {
+        display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 18px; align-items: center;
+        padding: 20px; margin-top: 18px; background: linear-gradient(135deg, #f7fcf7, #eef7ef); border-radius: 24px; border: 1px solid var(--border);
+      }
+      .scan-box {
+        border: 2px dashed #9dc4a3; border-radius: 22px; padding: 18px; text-align: center; background: rgba(255,255,255,0.75);
+      }
+      .scan-icon { font-size: 2.1rem; margin-bottom: 8px; }
+      .result-card-style {
+        background: linear-gradient(135deg, #ffffff, #f4fbf4); border: 1px solid var(--border); border-radius: 18px; padding: 16px;
+      }
+      .result-badge { display: inline-block; padding: 6px 10px; border-radius: 999px; background: #e8f5e9; color: var(--accent); font-size: 0.82rem; font-weight: 700; margin-bottom: 10px; }
+      .breed-detail-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 14px; }
+      .breed-card { background: linear-gradient(135deg, #ffffff, #f7fcf7); border: 1px solid var(--border); border-radius: 18px; padding: 14px; }
+      .breed-card h4 { margin: 0 0 6px; }
+      .breed-card p { margin: 0; color: var(--muted); font-size: 0.92rem; }
+      .hero-card { padding: 36px; }
+      .pill {
+        display: inline-flex; align-items: center; gap: 8px; background: var(--accent-soft); color: var(--accent);
+        padding: 8px 12px; border-radius: 999px; font-weight: 700; font-size: 0.92rem; margin-bottom: 14px;
+      }
+      h1 { font-size: clamp(2rem, 4vw, 3.3rem); margin: 0 0 12px; line-height: 1.1; }
+      .hero p { color: var(--muted); font-size: 1.05rem; margin-bottom: 18px; }
+      .buttons { display: flex; flex-wrap: wrap; gap: 12px; }
+      .btn { padding: 12px 18px; border-radius: 999px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
+      .btn-primary { background: linear-gradient(135deg, var(--accent), #3ca04a); color: #fff; }
+      .btn-secondary { background: #f2f7f3; color: var(--text); }
+      .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px; }
+      .stat { background: #f8fcf9; border: 1px solid var(--border); border-radius: 16px; padding: 14px; }
+      .stat strong { display: block; font-size: 1.1rem; color: var(--accent-dark); }
+      .mockup { padding: 18px; position: relative; }
+      .phone {
+        margin: 0 auto; width: 320px; background: linear-gradient(135deg, #0d1d14, #1f3b2a); border-radius: 34px; padding: 12px; box-shadow: 0 20px 50px rgba(0,0,0,0.24);
+      }
+      .screen {
+        background: linear-gradient(180deg, #f8fdf9 0%, #eef7ef 100%); border-radius: 24px; padding: 16px; min-height: 560px;
+      }
+      .top-bar { display:flex; justify-content:space-between; align-items:center; font-size:0.8rem; color:#5f6b62; margin-bottom: 12px; }
+      .welcome-card { background: linear-gradient(135deg, #2f7d32, #4aa04b); color: white; border-radius: 20px; padding: 18px; }
+      .welcome-card h3 { margin:0 0 8px; font-size:1.1rem; }
+      .quick-actions { display:grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 12px; }
+      .action { background:white; border-radius: 14px; padding: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.06); }
+      .action strong { display:block; margin-top:8px; font-size:0.95rem; }
+      .action-wide { grid-column: 1 / -1; }
+      .breed-list { display:flex; flex-wrap:wrap; gap: 8px; margin-top: 8px; }
+      .breed-pill { display:inline-block; padding: 6px 8px; border-radius: 999px; background:#f2f7f2; color:#24572a; font-size: 0.78rem; border:1px solid #dbe8dc; }
+      .result-card { margin-top: 12px; background:white; border-radius: 16px; padding: 14px; border:1px solid var(--border); }
+      .result-row { display:flex; justify-content:space-between; margin-top:6px; color:var(--muted); }
+      section { margin-top: 26px; }
+      .section-title { font-size: 1.4rem; margin-bottom: 12px; }
+      .grid { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+      .card { padding: 20px; }
+      .card h3 { margin-top:0; }
+      .card p { color: var(--muted); margin-bottom:0; }
+      .timeline { display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:16px; margin-top:16px; }
+      .step { background:white; border:1px solid var(--border); border-radius:18px; padding:16px; }
+      .step .num { width:34px; height:34px; border-radius:50%; background:var(--accent-soft); color:var(--accent); display:grid; place-items:center; font-weight:800; margin-bottom:10px; }
+      .cta { text-align:center; padding: 36px 20px; margin: 26px 0 10px; }
+      .footer { text-align:center; padding: 18px; color: var(--muted); margin-top:16px; }
+      @media (max-width: 900px) {
+        .hero, .scan-panel { grid-template-columns: 1fr; }
+        .grid, .timeline, .breed-detail-grid { grid-template-columns: 1fr; }
+        .stats { grid-template-columns: 1fr; }
+      }
+      @media (max-width: 640px) {
+        .nav { border-radius: 18px; flex-direction: column; gap: 10px; }
+        .nav-links a { margin: 0 8px; }
+        .phone { width: 100%; max-width: 320px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <nav class="nav">
+        <div class="brand">🐄 CattleSense</div>
+        <div class="nav-links">
+          <a href="index.html">Home</a>
+          <a href="features.html">Features</a>
+          <a href="about.html">About</a>
+          <a href="contact.html">Contact</a>
+        </div>
+      </nav>
+
+      <div class="hero">
+        <div class="hero-card">
+          <div class="pill">✨ AI-powered livestock care</div>
+          <h1>Recognize breeds, track records, and manage your herd with confidence.</h1>
+          <p>CattleSense combines intelligent cattle breed recognition with a polished mobile-first experience for farmers, veterinarians, and livestock managers.</p>
+          <div class="buttons">
+            <a class="btn btn-primary" href="features.html">Explore the App</a>
+            <a class="btn btn-secondary" href="about.html">Learn More</a>
+          </div>
+          <div class="stats">
+            <div class="stat"><strong>40+</strong><span>Breeds in library</span></div>
+            <div class="stat"><strong>AI</strong><span>Instant prediction</span></div>
+            <div class="stat"><strong>Fast</strong><span>Daily farm insights</span></div>
+          </div>
+        </div>
+
+        <div class="hero-card mockup">
+          <div class="phone">
+            <div class="screen">
+              <div class="top-bar">
+                <span>9:41</span>
+                <span>●●●</span>
+              </div>
+              <div class="welcome-card">
+                <h3>Welcome back, Cattle Officer</h3>
+                <p>Your latest scans and herd updates are ready.</p>
+              </div>
+              <div class="quick-actions">
+                <div class="action action-wide">
+                  <strong>All Breeds</strong>
+                  <div class="breed-list">
+                    <span class="breed-pill">Gir</span>
+                    <span class="breed-pill">Sahiwal</span>
+                    <span class="breed-pill">Ongole</span>
+                    <span class="breed-pill">Red Sindhi</span>
+                    <span class="breed-pill">Kangayam</span>
+                    <span class="breed-pill">Vechur</span>
+                  </div>
+                </div>
+                <div class="action">🗂️<strong>My Records</strong></div>
+                <div class="action">📚<strong>Breed Library</strong></div>
+                <div class="action">⚙️<strong>Profile</strong></div>
+              </div>
+              <div class="result-card">
+                <strong>Latest Result</strong>
+                <div class="result-row"><span>Breed</span><span>Gir</span></div>
+                <div class="result-row"><span>Confidence</span><span>96%</span></div>
+                <div class="result-row"><span>Status</span><span>Saved</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <section>
+        <h2 class="section-title">Scan now</h2>
+        <div class="scan-panel">
+          <div class="scan-box">
+            <div class="scan-icon">📷</div>
+            <h3>Start a new breed scan</h3>
+            <p>Capture a photo or upload an image to identify the breed instantly.</p>
+            <div class="buttons" style="justify-content:center; margin-top:12px;">
+              <a class="btn btn-primary" href="features.html">Scan Now</a>
+            </div>
+          </div>
+          <div class="result-card-style">
+            <div class="result-badge">Latest result</div>
+            <h3>Gir</h3>
+            <p>High milk yield • Native to Gujarat • 96% confidence</p>
+            <div style="margin-top:10px;">
+              <div style="display:flex; justify-content:space-between; margin-top:6px;"><span>Breed</span><strong>Gir</strong></div>
+              <div style="display:flex; justify-content:space-between; margin-top:6px;"><span>Origin</span><strong>Gujarat</strong></div>
+              <div style="display:flex; justify-content:space-between; margin-top:6px;"><span>Status</span><strong>Saved</strong></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="section-title">Breed detail cards</h2>
+        <div class="breed-detail-grid">
+          <div class="breed-card">
+            <h4>Gir</h4>
+            <p>One of India’s most famous dairy breeds with long pendulous ears and excellent heat tolerance.</p>
+          </div>
+          <div class="breed-card">
+            <h4>Ongole</h4>
+            <p>Powerful dual-purpose cattle known for strength, muscular build, and high endurance.</p>
+          </div>
+          <div class="breed-card">
+            <h4>Sahiwal</h4>
+            <p>Renowned milch breed with loose skin, rich milk yield, and strong adaptation to hot climates.</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="section-title">Why this experience stands out</h2>
+        <div class="grid">
+          <div class="card">
+            <h3>Explore all breeds</h3>
+            <p>Browse the full cattle breed library from the app, including Gir, Ongole, Sahiwal, Red Sindhi, Kangayam, Vechur, and many more.</p>
+          </div>
+          <div class="card">
+            <h3>Review your history</h3>
+            <p>View recent activity, scan results, and confidence levels in a clean records dashboard.</p>
+          </div>
+          <div class="card">
+            <h3>Identify with AI</h3>
+            <p>Capture or upload a cattle image and get a breed prediction in seconds through the app’s AI-powered flow.</p>
+          </div>
+          <div class="card">
+            <h3>Stay organized on the go</h3>
+            <p>Profile, settings, and farm management features keep everything within reach.</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="section-title">All breeds available in the app</h2>
+        <div class="card" style="display:flex; flex-wrap:wrap; gap:8px;">
+          <span class="breed-pill">Amritmahal</span>
+          <span class="breed-pill">Ayrshire</span>
+          <span class="breed-pill">Bargur</span>
+          <span class="breed-pill">Dangi</span>
+          <span class="breed-pill">Deoni</span>
+          <span class="breed-pill">Gir</span>
+          <span class="breed-pill">Hallikar</span>
+          <span class="breed-pill">Hariana</span>
+          <span class="breed-pill">Himachali Pahari</span>
+          <span class="breed-pill">Kangayam</span>
+          <span class="breed-pill">Kankrej</span>
+          <span class="breed-pill">Kenkatha</span>
+          <span class="breed-pill">Khariar</span>
+          <span class="breed-pill">Khillari</span>
+          <span class="breed-pill">Konkan Kapila</span>
+          <span class="breed-pill">Kosali</span>
+          <span class="breed-pill">Krishna Valley</span>
+          <span class="breed-pill">Ladakhi</span>
+          <span class="breed-pill">Lakhimi</span>
+          <span class="breed-pill">Malnad Gidda</span>
+          <span class="breed-pill">Mewati</span>
+          <span class="breed-pill">Nari</span>
+          <span class="breed-pill">Nimari</span>
+          <span class="breed-pill">Ongole</span>
+          <span class="breed-pill">Poda Thirupu</span>
+          <span class="breed-pill">Pulikulam</span>
+          <span class="breed-pill">Punganur</span>
+          <span class="breed-pill">Purnea</span>
+          <span class="breed-pill">Rathi</span>
+          <span class="breed-pill">Red Kandhari</span>
+          <span class="breed-pill">Red Sindhi</span>
+          <span class="breed-pill">Sahiwal</span>
+          <span class="breed-pill">Shweta Kapila</span>
+          <span class="breed-pill">Tharparkar</span>
+          <span class="breed-pill">Umblachery</span>
+          <span class="breed-pill">Vechur</span>
+          <span class="breed-pill">Bachaur</span>
+          <span class="breed-pill">Badri</span>
+          <span class="breed-pill">Belahi</span>
+          <span class="breed-pill">Dagri</span>
+          <span class="breed-pill">Gangatiri</span>
+          <span class="breed-pill">Gaolao</span>
+          <span class="breed-pill">Ghumsari</span>
+          <span class="breed-pill">Kherigarh</span>
+          <span class="breed-pill">Malvi</span>
+          <span class="breed-pill">Motu</span>
+          <span class="breed-pill">Nagori</span>
+          <span class="breed-pill">Ponwar</span>
+          <span class="breed-pill">Siri</span>
+          <span class="breed-pill">Thutho</span>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="section-title">How it works</h2>
+        <div class="timeline">
+          <div class="step">
+            <div class="num">1</div>
+            <h3>Capture</h3>
+            <p>Take a clear photo of the cattle or upload one from the gallery.</p>
+          </div>
+          <div class="step">
+            <div class="num">2</div>
+            <h3>Analyze</h3>
+            <p>The app processes the image using the trained model and returns a breed prediction.</p>
+          </div>
+          <div class="step">
+            <div class="num">3</div>
+            <h3>Manage</h3>
+            <p>Save the result, review history, and explore more breed details effortlessly.</p>
+          </div>
+        </div>
+      </section>
+
+      <div class="cta hero-card">
+        <h2>Ready to see the full experience?</h2>
+        <p>Explore the feature pages, project story, and contact information in a polished website experience that mirrors the app flow.</p>
+        <div class="buttons" style="justify-content:center; margin-top:16px;">
+          <a class="btn btn-primary" href="features.html">View Features</a>
+          <a class="btn btn-secondary" href="contact.html">Contact the Team</a>
+        </div>
+      </div>
+
+      <div class="footer">Built for the CattleSense project • Designed to feel close to the app experience.</div>
+    </div>
+  </body>
+</html>
