@@ -20,26 +20,8 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Stage 3: Execute Appium Mobile E2E Test Suite (400+ Test Cases)
-        run: |
-          python automation/mobile/run_appium_tests.py
+      - name: Stage 3: Execute Appium Mobile E2E Test Suite (300+ Test Cases)
+        run: python automation/mobile/run_appium_tests.py
 
       - name: Stage 4: Generate Excel, HTML & Executive Summary Reports
-        run: |
-          python automation/mobile/generate_mobile_reports.py
-
-      - name: Stage 5: Upload Test Artifacts (Excel & HTML Reports)
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: Appium-Mobile-E2E-Reports
-          path: Test_Results/**
-          if-no-files-found: ignore
-          retention-days: 30
-
-      - name: Stage 6: Publish GitHub Action Step Summary
-        if: always()
-        run: |
-          if [ -f "Test_Results/Summary/summary.md" ]; then
-            cat "Test_Results/Summary/summary.md" >> $GITHUB_STEP_SUMMARY
-          fi
+        run: python automation/mobile/generate_mobile_reports.py

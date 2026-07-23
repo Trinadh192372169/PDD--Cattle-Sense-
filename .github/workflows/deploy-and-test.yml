@@ -20,30 +20,11 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Stage 3: Execute Selenium Web E2E Test Suite (400+ Test Cases)
-        run: |
-          python automation/web/run_selenium_tests.py
+      - name: Stage 3: Execute Selenium Web E2E Test Suite (300+ Test Cases)
+        run: python automation/web/run_selenium_tests.py
 
       - name: Stage 4: Run Backend Security Audit & Baseline Load Testing
-        run: |
-          python automation/security/run_security_audit.py
+        run: python automation/security/run_security_audit.py
 
       - name: Stage 5: Generate Enterprise Excel & HTML Reports
-        run: |
-          python automation/web/generate_web_reports.py
-
-      - name: Stage 6: Upload Test & Security Artifacts
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: Selenium-Web-E2E-Security-Reports
-          path: Test_Results/**
-          if-no-files-found: ignore
-          retention-days: 30
-
-      - name: Stage 7: Publish GitHub Action Step Summary
-        if: always()
-        run: |
-          if [ -f "Test_Results/Summary/summary.md" ]; then
-            cat "Test_Results/Summary/summary.md" >> $GITHUB_STEP_SUMMARY
-          fi
+        run: python automation/web/generate_web_reports.py
