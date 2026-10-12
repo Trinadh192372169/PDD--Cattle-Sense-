@@ -1,267 +1,329 @@
-import React from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, Switch, ScrollView, StatusBar, Alert, ActionSheetIOS, Platform } from 'react-native';
+import React, { useState } from 'react';
+import {
+  StyleSheet,
+  View,
+  Text,
+  TouchableOpacity,
+  Switch,
+  ScrollView,
+  Platform,
+} from 'react-native';
 import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { AgriColors } from '../../constants/theme';
+import { ResponsiveShell } from '../../components/ResponsiveShell';
 import { useSettingsStore } from '../../store/settingsStore';
 import { useAuthStore } from '../../store/authStore';
+import { useTranslation, LanguageCode } from '../../locales/i18n';
 
 export default function SettingsScreen() {
-    const router = useRouter();
-    const {
-        language, setLanguage,
-        offlineMode, toggleOfflineMode,
-        autoSync, toggleAutoSync,
-        notifications, toggleNotifications,
-        darkMode, toggleDarkMode
-    } = useSettingsStore();
+  const router = useRouter();
+  const {
+    language,
+    setLanguage,
+    autoSync,
+    toggleAutoSync,
+    notifications,
+    toggleNotifications,
+    darkMode,
+    toggleDarkMode,
+  } = useSettingsStore();
 
-    const { logout } = useAuthStore();
+  const { logout, userEmail, displayName } = useAuthStore();
+  const { t } = useTranslation();
+  const [cacheMessage, setCacheMessage] = useState<string | null>(null);
 
-    const handleLogout = () => {
-        Alert.alert(
-            "Log Out",
-            "Are you sure you want to log out?",
-            [
-                { text: "Cancel", style: "cancel" },
-                {
-                    text: "Log Out",
-                    style: "destructive",
-                    onPress: () => {
-                        logout();
-                        router.replace('/(auth)/login' as any);
-                    }
-                }
-            ]
-        );
-    };
+  const handleClearCache = () => {
+    setCacheMessage(t.setCacheCleared);
+    setTimeout(() => setCacheMessage(null), 3000);
+  };
 
-    const handleLanguageChange = () => {
-        Alert.alert(
-            "Select Language",
-            "Choose your preferred language",
-            [
-                { text: "English", onPress: () => setLanguage('en') },
-                { text: "Hindi", onPress: () => setLanguage('hi') },
-                { text: "Gujarati", onPress: () => setLanguage('gu') },
-                { text: "Cancel", style: "cancel" }
-            ]
-        );
-    };
+  const handleLogout = () => {
+    logout();
+    router.replace('/(auth)/login');
+  };
 
-    const handleOfflineToggle = (val: boolean) => {
-        toggleOfflineMode();
-        if (val) {
-            Alert.alert("Offline Mode", "App will now work without internet connection. Some features may be limited.");
-        }
-    };
+  const languages: { code: LanguageCode; label: string; native: string }[] = [
+    { code: 'en', label: 'English', native: 'English' },
+    { code: 'hi', label: 'Hindi', native: 'हिन्दी' },
+    { code: 'gu', label: 'Gujarati', native: 'ગુજરાતી' },
+  ];
 
-    const renderItem = (icon: string, label: string, type: 'link' | 'toggle' | 'value', value?: any, onToggle?: (val: boolean) => void, onPress?: () => void) => (
-        <TouchableOpacity
-            style={styles.item}
-            onPress={type !== 'toggle' ? onPress : undefined}
-            activeOpacity={type === 'toggle' ? 1 : 0.7}
-        >
-            <View style={styles.itemLeft}>
-                <View style={[styles.iconBox, { backgroundColor: darkMode ? '#333' : '#F5F7FA' }]}>
-                    <Ionicons name={icon as any} size={20} color={darkMode ? '#FFF' : "#5B6B7C"} />
-                </View>
-                <Text style={[styles.itemLabel, darkMode && styles.darkText]}>{label}</Text>
-            </View>
+  return (
+    <ResponsiveShell
+      title={t.navSettings}
+      subtitle="Preferences, Localization & Device Cache"
+      activeRoute="settings"
+    >
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        {/* Language Selection Card */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <Ionicons name="globe-outline" size={20} color={AgriColors.primary} />
+            <Text style={styles.cardTitle}>{t.setLanguage}</Text>
+          </View>
+          <Text style={styles.cardDesc}>
+            Choose your interface language. The entire app will update in real time:
+          </Text>
 
-            {type === 'toggle' ? (
-                <Switch
-                    value={value}
-                    onValueChange={onToggle}
-                    trackColor={{ false: '#767577', true: '#FF8008' }}
-                    thumbColor={value ? '#FFF' : '#f4f3f4'}
-                />
-            ) : type === 'value' ? (
-                <View style={styles.valueContainer}>
-                    <Text style={styles.valueText}>{value}</Text>
-                    <Ionicons name="chevron-forward" size={20} color="#D1D9E6" />
-                </View>
-            ) : (
-                <Ionicons name="chevron-forward" size={20} color="#D1D9E6" />
-            )}
-        </TouchableOpacity>
-    );
-
-    const getLangLabel = () => {
-        switch (language) {
-            case 'hi': return 'Hindi';
-            case 'gu': return 'Gujarati';
-            default: return 'English';
-        }
-    };
-
-    const containerStyle = [styles.container, darkMode && styles.darkContainer];
-    const sectionStyle = [styles.section, darkMode && styles.darkSection];
-
-    return (
-        <View style={containerStyle}>
-            <StatusBar barStyle={darkMode ? "light-content" : "dark-content"} />
-            <SafeAreaView style={styles.safeArea}>
-
-                <View style={[styles.header, darkMode && styles.darkHeader]}>
-                    <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                        <Ionicons name="arrow-back" size={24} color={darkMode ? '#FFF' : "#1A2A3A"} />
-                    </TouchableOpacity>
-                    <Text style={[styles.headerTitle, darkMode && styles.darkText]}>Settings</Text>
-                </View>
-
-                <ScrollView contentContainerStyle={styles.content}>
-
-                    <Text style={styles.sectionTitle}>General</Text>
-                    <View style={sectionStyle}>
-                        {renderItem('earth-outline', 'Language', 'value', getLangLabel(), undefined, handleLanguageChange)}
-                        {renderItem('moon-outline', 'Dark Mode', 'toggle', darkMode, toggleDarkMode)}
-                    </View>
-
-                    <Text style={styles.sectionTitle}>Sync & Data</Text>
-                    <View style={sectionStyle}>
-                        {renderItem('cloud-offline-outline', 'Offline Mode', 'toggle', offlineMode, handleOfflineToggle)}
-                        {renderItem('sync-outline', 'Auto-Sync Records', 'toggle', autoSync, toggleAutoSync)}
-                        {renderItem('save-outline', 'Storage Management', 'link')}
-                    </View>
-
-                    <Text style={styles.sectionTitle}>Notifications</Text>
-                    <View style={sectionStyle}>
-                        {renderItem('notifications-outline', 'Push Notifications', 'toggle', notifications, toggleNotifications)}
-                    </View>
-
-                    <Text style={styles.sectionTitle}>Support</Text>
-                    <View style={sectionStyle}>
-                        {renderItem('information-circle-outline', 'About App', 'link', undefined, undefined, () => router.push('/(stack)/about' as any))}
-                        {renderItem('help-circle-outline', 'Help & FAQ', 'link')}
-                        {renderItem('warning-outline', 'Report an Issue', 'link')}
-                    </View>
-
-                    <TouchableOpacity style={[styles.logoutButton, darkMode && styles.darkSection]} onPress={handleLogout}>
-                        <Text style={styles.logoutText}>Log Out</Text>
-                    </TouchableOpacity>
-
-                    <View style={styles.footerInfo}>
-                        <Text style={styles.versionText}>Cattle Sense v1.0.0 (Beta)</Text>
-                    </View>
-
-                </ScrollView>
-            </SafeAreaView>
+          <View style={styles.langGrid}>
+            {languages.map((item) => {
+              const isSelected = language === item.code;
+              return (
+                <TouchableOpacity
+                  key={item.code}
+                  style={[styles.langOption, isSelected && styles.langOptionActive]}
+                  onPress={() => setLanguage(item.code)}
+                  activeOpacity={0.8}
+                >
+                  <View style={styles.langRadio}>
+                    {isSelected && <View style={styles.langRadioDot} />}
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.langNative, isSelected && styles.langNativeActive]}>
+                      {item.native}
+                    </Text>
+                    <Text style={styles.langLabel}>{item.label}</Text>
+                  </View>
+                  {isSelected && (
+                    <Ionicons name="checkmark-circle" size={18} color={AgriColors.primary} />
+                  )}
+                </TouchableOpacity>
+              );
+            })}
+          </View>
         </View>
-    );
+
+        {/* Preferences & Toggles Card */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <Ionicons name="options-outline" size={20} color={AgriColors.primary} />
+            <Text style={styles.cardTitle}>App Preferences</Text>
+          </View>
+
+          <View style={styles.rowItem}>
+            <View style={{ flex: 1, paddingRight: 10 }}>
+              <Text style={styles.rowTitle}>Cloud Data Sync</Text>
+              <Text style={styles.rowSub}>Automatically backup new scan records to cloud</Text>
+            </View>
+            <Switch
+              value={autoSync}
+              onValueChange={toggleAutoSync}
+              trackColor={{ false: '#D1D5DB', true: '#A7F3D0' }}
+              thumbColor={autoSync ? AgriColors.primary : '#F3F4F6'}
+            />
+          </View>
+
+          <View style={styles.divider} />
+
+          <View style={styles.rowItem}>
+            <View style={{ flex: 1, paddingRight: 10 }}>
+              <Text style={styles.rowTitle}>Field Notifications</Text>
+              <Text style={styles.rowSub}>Alerts for sync completion and system notices</Text>
+            </View>
+            <Switch
+              value={notifications}
+              onValueChange={toggleNotifications}
+              trackColor={{ false: '#D1D5DB', true: '#A7F3D0' }}
+              thumbColor={notifications ? AgriColors.primary : '#F3F4F6'}
+            />
+          </View>
+        </View>
+
+        {/* Cache & Storage Card */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <Ionicons name="server-outline" size={20} color={AgriColors.primary} />
+            <Text style={styles.cardTitle}>Local Storage & Cache</Text>
+          </View>
+          <Text style={styles.cardDesc}>
+            Manage cached thumbnails, session tokens, and temporary files.
+          </Text>
+
+          {cacheMessage && (
+            <View style={styles.cacheNotice}>
+              <Ionicons name="checkmark-circle" size={16} color={AgriColors.primary} />
+              <Text style={styles.cacheNoticeText}>{cacheMessage}</Text>
+            </View>
+          )}
+
+          <TouchableOpacity
+            style={styles.clearCacheBtn}
+            onPress={handleClearCache}
+          >
+            <Ionicons name="trash-outline" size={16} color={AgriColors.primary} />
+            <Text style={styles.clearCacheBtnText}>{t.setClearCache}</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Account Security Card */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <Ionicons name="shield-checkmark-outline" size={20} color={AgriColors.primary} />
+            <Text style={styles.cardTitle}>Account & Session</Text>
+          </View>
+          <View style={styles.rowItem}>
+            <View>
+              <Text style={styles.rowTitle}>{displayName || 'Cattle Officer'}</Text>
+              <Text style={styles.rowSub}>{userEmail || 'Active Session'}</Text>
+            </View>
+          </View>
+
+          <TouchableOpacity
+            style={styles.signOutBtn}
+            onPress={handleLogout}
+          >
+            <Ionicons name="log-out-outline" size={18} color="#DC2626" />
+            <Text style={styles.signOutBtnText}>{t.navLogout}</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </ResponsiveShell>
+  );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#F5F7FA',
-    },
-    darkContainer: {
-        backgroundColor: '#111',
-    },
-    safeArea: {
-        flex: 1,
-    },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 20,
-        paddingVertical: 16,
-        backgroundColor: '#FFF',
-        borderBottomWidth: 1,
-        borderBottomColor: '#F0F2F5',
-    },
-    darkHeader: {
-        backgroundColor: '#1A2A3A',
-        borderBottomColor: '#333',
-    },
-    backButton: {
-        padding: 8,
-        marginLeft: -8,
-        marginRight: 16,
-    },
-    headerTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#1A2A3A',
-    },
-    darkText: {
-        color: '#FFF',
-    },
-    content: {
-        padding: 20,
-        paddingBottom: 40,
-    },
-    sectionTitle: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#5B6B7C',
-        marginBottom: 10,
-        marginTop: 20,
-        textTransform: 'uppercase',
-    },
-    section: {
-        backgroundColor: '#FFF',
-        borderRadius: 12,
-        overflow: 'hidden',
-    },
-    darkSection: {
-        backgroundColor: '#1A2A3A',
-    },
-    item: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: 16,
-        borderBottomWidth: 1,
-        borderBottomColor: 'rgba(0,0,0,0.05)',
-    },
-    itemLeft: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    iconBox: {
-        width: 32,
-        height: 32,
-        borderRadius: 8,
-        backgroundColor: '#F5F7FA',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: 12,
-    },
-    itemLabel: {
-        fontSize: 16,
-        color: '#1A2A3A',
-    },
-    valueContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    valueText: {
-        fontSize: 14,
-        color: '#888',
-        marginRight: 8,
-    },
-    logoutButton: {
-        marginTop: 40,
-        backgroundColor: '#FFF',
-        borderRadius: 12,
-        padding: 16,
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: 'rgba(255, 59, 48, 0.1)',
-    },
-    logoutText: {
-        color: '#FF3B30',
-        fontWeight: 'bold',
-        fontSize: 16,
-    },
-    footerInfo: {
-        alignItems: 'center',
-        marginTop: 20,
-    },
-    versionText: {
-        color: '#9AA5B1',
-        fontSize: 12,
-    },
+  scrollContent: {
+    padding: 20,
+    gap: 16,
+    maxWidth: 800,
+    alignSelf: 'center',
+    width: '100%',
+  },
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: AgriColors.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 6,
+    elevation: 2,
+    gap: 12,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: AgriColors.primaryDark,
+  },
+  cardDesc: {
+    fontSize: 13,
+    color: AgriColors.textMuted,
+    lineHeight: 18,
+  },
+  langGrid: {
+    gap: 10,
+    marginTop: 4,
+  },
+  langOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: AgriColors.background,
+    padding: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: AgriColors.border,
+    gap: 12,
+  },
+  langOptionActive: {
+    backgroundColor: '#E8F5EE',
+    borderColor: AgriColors.primary,
+  },
+  langRadio: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: AgriColors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  langRadioDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: AgriColors.primary,
+  },
+  langNative: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: AgriColors.textDark,
+  },
+  langNativeActive: {
+    color: AgriColors.primary,
+  },
+  langLabel: {
+    fontSize: 12,
+    color: AgriColors.textMuted,
+  },
+  rowItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 6,
+  },
+  rowTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: AgriColors.textDark,
+  },
+  rowSub: {
+    fontSize: 12,
+    color: AgriColors.textMuted,
+    marginTop: 2,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: AgriColors.borderSubtle,
+    marginVertical: 4,
+  },
+  cacheNotice: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E8F5EE',
+    padding: 10,
+    borderRadius: 8,
+    gap: 8,
+  },
+  cacheNoticeText: {
+    fontSize: 12,
+    color: AgriColors.primaryDark,
+    fontWeight: '600',
+  },
+  clearCacheBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: AgriColors.pillBg,
+    paddingVertical: 11,
+    borderRadius: 10,
+    gap: 8,
+  },
+  clearCacheBtnText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: AgriColors.primary,
+  },
+  signOutBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FEE2E2',
+    paddingVertical: 12,
+    borderRadius: 10,
+    gap: 8,
+    marginTop: 6,
+  },
+  signOutBtnText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#DC2626',
+  },
 });

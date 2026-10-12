@@ -9,7 +9,7 @@ export default function OnboardingFieldConditions() {
     const router = useRouter();
 
     const handleFinish = () => {
-        router.push('/(auth)/login');
+        router.push('/login');
     };
 
     return (

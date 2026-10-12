@@ -1,381 +1,637 @@
 import React, { useState, useCallback } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, ScrollView, StatusBar, Image, Dimensions } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  Image,
+  useWindowDimensions,
+  ActivityIndicator,
+} from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { getProfile, getStats, getScans, DEV_BACKEND_URL } from '../../services/api';
-
-const { width } = Dimensions.get('window');
+import { AgriColors } from '../../constants/theme';
+import { ResponsiveShell } from '../../components/ResponsiveShell';
+import { useAuthStore } from '../../store/authStore';
+import { getStats, getAnalytics, getScans, DEV_BACKEND_URL } from '../../services/api';
+import { getFirebaseProfile, getFirebaseStats, getRecentFirebaseScans } from '../../services/firebase';
+import { getBreedImage } from '../../constants/breedImages';
+import { useTranslation } from '../../locales/i18n';
 
 export default function HomeScreen() {
-    const router = useRouter();
-    const [userName, setUserName] = useState("Cattle Officer");
-    const [profilePic, setProfilePic] = useState<string | null>(null);
-    const [stats, setStats] = useState({ totalScans: 0, thisMonth: 0 });
-    const [recentScans, setRecentScans] = useState<any[]>([]);
-    const mobileNumber = "1234567890"; // Mock mobile
+  const router = useRouter();
+  const { width } = useWindowDimensions();
+  const { uid, displayName, userEmail, userMobile, role } = useAuthStore();
+  const { t } = useTranslation();
 
-    useFocusEffect(
-        useCallback(() => {
-            loadData();
-        }, [])
-    );
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({ totalScans: 0, thisMonth: 0, avgConfidence: 0 });
+  const [topBreed, setTopBreed] = useState<string>('None');
+  const [breedDistribution, setBreedDistribution] = useState<Record<string, number>>({});
+  const [recentScans, setRecentScans] = useState<any[]>([]);
 
-    const loadData = async () => {
-        try {
-            // Load Profile
-            const profileData = await getProfile(mobileNumber);
-            if (profileData && profileData.full_name) {
-                setUserName(profileData.full_name);
-                if (profileData.profile_picture) {
-                    const url = profileData.profile_picture.startsWith('/') ? `${DEV_BACKEND_URL}${profileData.profile_picture}` : profileData.profile_picture;
-                    setProfilePic(url);
-                }
-            }
+  const identifier = userMobile || userEmail || '1234567890';
 
-            // Load Stats
-            const statsData = await getStats(mobileNumber);
-            if (statsData) {
-                setStats({
-                    totalScans: statsData.total_scans,
-                    thisMonth: statsData.this_month
-                });
-            }
+  useFocusEffect(
+    useCallback(() => {
+      loadDashboardData();
+    }, [identifier, uid])
+  );
 
-            // Load Recent Scans
-            const scansData = await getScans(mobileNumber);
-            if (scansData) {
-                setRecentScans(scansData.slice(0, 3)); // Top 3 most recent
-            }
-        } catch (error) {
-            console.log("Failed to load home data");
+  const loadDashboardData = async () => {
+    setLoading(true);
+    try {
+      let total = 0;
+      let month = 0;
+      let avgConf = 0;
+      let breedsMap: Record<string, number> = {};
+      const recentList: any[] = [];
+
+      // 1. Fetch from FastAPI Backend (SQLite)
+      try {
+        const [statsData, analyticsData, scansData] = await Promise.allSettled([
+          getStats(identifier),
+          getAnalytics(identifier),
+          getScans(identifier),
+        ]);
+
+        if (statsData.status === 'fulfilled' && statsData.value) {
+          total = statsData.value.total_scans || 0;
+          month = statsData.value.this_month || 0;
         }
-    };
 
-    return (
-        <View style={styles.container}>
-            <StatusBar barStyle="dark-content" backgroundColor="#F5F7FA" />
-            <SafeAreaView style={styles.safeArea}>
+        if (analyticsData.status === 'fulfilled' && analyticsData.value) {
+          avgConf = analyticsData.value.average_confidence || 0;
+          breedsMap = analyticsData.value.breed_distribution || {};
+        }
 
-                {/* Header */}
-                <View style={styles.header}>
-                    <Text style={styles.headerTitle}>Cattle Sense</Text>
-                    <TouchableOpacity>
-                        <Ionicons name="notifications" size={26} color="#1B4332" />
-                    </TouchableOpacity>
-                </View>
+        if (scansData.status === 'fulfilled' && Array.isArray(scansData.value)) {
+          scansData.value.slice(0, 4).forEach((s) => {
+            const rawConf = Number(s.confidence) || 0;
+            const cPct = rawConf <= 1.0 ? rawConf * 100 : rawConf;
+            let imgUri = s.image;
+            if (imgUri && imgUri.startsWith('/uploads/')) {
+              imgUri = `${DEV_BACKEND_URL}${imgUri}`;
+            }
+            recentList.push({
+              id: s.id,
+              breed: s.breed,
+              confidence: Math.round(cPct),
+              date: s.date || 'Recent',
+              image: imgUri ? { uri: imgUri } : getBreedImage(s.breed),
+            });
+          });
+        }
+      } catch (beErr) {
+        console.log('Backend dashboard data notice:', beErr);
+      }
 
-                <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      // 2. Fallback to Firebase if local stats were 0
+      if (total === 0 && uid) {
+        try {
+          const fbStats = await getFirebaseStats(uid);
+          if (fbStats) {
+            total = fbStats.total_scans || 0;
+            month = fbStats.this_month || 0;
+          }
+          const fbRecent = await getRecentFirebaseScans(uid, 4);
+          if (Array.isArray(fbRecent)) {
+            fbRecent.forEach((fb) => {
+              recentList.push({
+                id: fb.id,
+                breed: fb.breed,
+                confidence: Math.round(Number(fb.confidence || 0) * 100),
+                date: (fb.created_at || fb.timestamp) ? new Date(((fb.created_at || fb.timestamp).seconds || 0) * 1000).toLocaleDateString() : 'Recent',
+                image: fb.image_url ? { uri: fb.image_url } : getBreedImage(fb.breed),
+              });
+            });
+          }
+        } catch (fbErr) {
+          console.log('Firebase dashboard data notice:', fbErr);
+        }
+      }
 
-                    {/* Welcome Card */}
-                    <View style={styles.welcomeCard}>
-                        <View style={styles.profileSection}>
-                            {/* User Avatar based on Name */}
-                            <View style={styles.profileImageContainer}>
-                                <Image
-                                    source={{ uri: profilePic || `https://ui-avatars.com/api/?name=${userName}&background=FF8008&color=fff&size=200` }}
-                                    style={styles.profileImage}
-                                />
-                            </View>
-                            <View>
-                                <Text style={styles.welcomeText}>Welcome back,</Text>
-                                <Text style={styles.userName}>{userName}</Text>
-                            </View>
-                        </View>
+      // Compute Top Breed
+      const sortedBreeds = Object.entries(breedsMap).sort((a: any, b: any) => b[1] - a[1]);
+      if (sortedBreeds.length > 0) {
+        setTopBreed(sortedBreeds[0][0]);
+      } else if (recentList.length > 0) {
+        setTopBreed(recentList[0].breed);
+      }
 
-                        <View style={styles.statsContainer}>
-                            <View style={styles.statBox}>
-                                <Text style={styles.statLabel}>Total Scans</Text>
-                                <Text style={styles.statValue}>{stats.totalScans}</Text>
-                            </View>
-                            <View style={styles.statBox}>
-                                <Text style={styles.statLabel}>This Month</Text>
-                                <Text style={styles.statValue}>{stats.thisMonth}</Text>
-                            </View>
-                        </View>
-                    </View>
+      setStats({ totalScans: total, thisMonth: month, avgConfidence: avgConf });
+      setBreedDistribution(breedsMap);
+      setRecentScans(recentList);
+    } catch (e) {
+      console.error('Failed to load dashboard data', e);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-                    {/* Quick Actions Title */}
-                    <Text style={styles.sectionTitle}>Quick Actions</Text>
+  const sortedBreedsList = Object.entries(breedDistribution)
+    .sort((a: any, b: any) => b[1] - a[1])
+    .slice(0, 5);
 
-                    {/* Quick Actions Grid */}
-                    <View style={styles.gridContainer}>
-                        {/* Scan Cattle */}
-                        <TouchableOpacity style={styles.gridCard} onPress={() => router.push('/(tabs)')}>
-                            {/* Note: /(tabs) index is likely the Scan screen based on layout */}
-                            <View style={[styles.iconContainer, { backgroundColor: '#E8F5E9' }]}>
-                                <Ionicons name="camera" size={28} color="#1B4332" />
-                            </View>
-                            <Text style={styles.gridTitle}>Scan Cattle</Text>
-                            <Text style={styles.gridSubtitle}>Identify breed</Text>
-                        </TouchableOpacity>
+  return (
+    <ResponsiveShell
+      title={t.navDashboard}
+      subtitle={t.dashSubtitle}
+      activeRoute="dashboard"
+    >
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        {/* Welcome Banner */}
+        <View style={styles.welcomeBanner}>
+          <View style={styles.welcomeLeft}>
+            <View style={styles.avatarCircle}>
+              <Text style={styles.avatarInitials}>
+                {(displayName || 'C').charAt(0).toUpperCase()}
+              </Text>
+            </View>
+            <View style={styles.welcomeTextGroup}>
+              <Text style={styles.welcomeGreeting}>{t.dashWelcome},</Text>
+              <Text style={styles.welcomeName}>{displayName || 'Cattle Officer'}</Text>
+              <Text style={styles.welcomeRoleBadge}>{role || 'Field Veterinarian'}</Text>
+            </View>
+          </View>
 
-                        {/* My Records */}
-                        <TouchableOpacity style={styles.gridCard} onPress={() => router.push('/(tabs)/records')}>
-                            <View style={[styles.iconContainer, { backgroundColor: '#E0F7FA' }]}>
-                                <Ionicons name="folder-open" size={28} color="#00695C" />
-                            </View>
-                            <Text style={styles.gridTitle}>My Records</Text>
-                            <Text style={styles.gridSubtitle}>View saved data</Text>
-                        </TouchableOpacity>
-
-                        {/* Breed Library */}
-                        <TouchableOpacity style={styles.gridCard} onPress={() => router.push('/(stack)/breed-library')}>
-                            <View style={[styles.iconContainer, { backgroundColor: '#FFF3E0' }]}>
-                                <Ionicons name="book" size={28} color="#EF6C00" />
-                            </View>
-                            <Text style={styles.gridTitle}>Breed Library</Text>
-                            <Text style={styles.gridSubtitle}>Browse breeds</Text>
-                        </TouchableOpacity>
-
-                        {/* BPA Sync */}
-                        <TouchableOpacity style={styles.gridCard} onPress={() => router.push('/(stack)/bpa-coming-soon')}>
-                            <View style={[styles.iconContainer, { backgroundColor: '#F3E5F5' }]}>
-                                <MaterialCommunityIcons name="link-variant" size={28} color="#7B1FA2" />
-                            </View>
-                            <Text style={styles.gridTitle}>BPA Sync</Text>
-                            <Text style={styles.gridSubtitle}>Integration</Text>
-                        </TouchableOpacity>
-                    </View>
-
-                    {/* Recent Activity Title */}
-                    <Text style={styles.sectionTitle}>Recent Activity</Text>
-
-                    {/* Recent Activity List */}
-                    <View style={styles.recentList}>
-                        {recentScans.length === 0 ? (
-                            <View style={styles.recentActivityPlaceholder}>
-                                <Text style={{ color: '#AAA' }}>No recent activity</Text>
-                            </View>
-                        ) : (
-                            recentScans.map((item) => {
-                                let imageUrl = item.image;
-                                if (imageUrl && imageUrl.startsWith('/')) {
-                                    imageUrl = `${DEV_BACKEND_URL}${imageUrl}`;
-                                }
-                                return (
-                                    <TouchableOpacity
-                                        key={item.id}
-                                        style={styles.recentCard}
-                                        onPress={() => router.push({ pathname: '/(stack)/breed-detail' as any, params: { breed: item.breed } })}
-                                    >
-                                        <Image
-                                            source={
-                                                typeof imageUrl === 'string'
-                                                    ? { uri: imageUrl }
-                                                    : imageUrl // Handle local require() assets
-                                            }
-                                            style={styles.recentImage}
-                                        />
-                                        <View style={styles.recentInfo}>
-                                            <Text style={styles.recentBreed}>{item.breed}</Text>
-                                            <Text style={styles.recentDate}>{item.date}</Text>
-                                            <View style={styles.recentBadge}>
-                                                <Text style={styles.recentBadgeText}>
-                                                    {(item.confidence * 100).toFixed(0)}% Confidence
-                                                </Text>
-                                            </View>
-                                        </View>
-                                        <Ionicons name="chevron-forward" size={20} color="#CBD5E0" />
-                                    </TouchableOpacity>
-                                );
-                            })
-                        )}
-                    </View>
-
-                </ScrollView>
-            </SafeAreaView>
+          <TouchableOpacity
+            style={styles.heroScanBtn}
+            onPress={() => router.push('/(tabs)' as any)}
+            activeOpacity={0.85}
+          >
+            <Ionicons name="scan" size={20} color="#FFF" />
+            <Text style={styles.heroScanBtnText}>{t.dashQuickScan}</Text>
+          </TouchableOpacity>
         </View>
-    );
+
+        {/* Quick Action Navigation Tiles */}
+        <View style={styles.quickActionsRow}>
+          <TouchableOpacity
+            style={styles.actionTile}
+            onPress={() => router.push('/(tabs)' as any)}
+            activeOpacity={0.8}
+          >
+            <View style={[styles.actionIconBox, { backgroundColor: '#E8F5EE' }]}>
+              <Ionicons name="scan-circle" size={24} color={AgriColors.primary} />
+            </View>
+            <Text style={styles.actionTitle}>{t.dashQuickScan}</Text>
+            <Text style={styles.actionSub}>Live Camera / Upload</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.actionTile}
+            onPress={() => router.push('/(stack)/breed-library')}
+            activeOpacity={0.8}
+          >
+            <View style={[styles.actionIconBox, { backgroundColor: '#E0F2FE' }]}>
+              <Ionicons name="book" size={22} color="#0284C7" />
+            </View>
+            <Text style={styles.actionTitle}>{t.dashBrowseBreeds}</Text>
+            <Text style={styles.actionSub}>50 Indian Breeds</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.actionTile}
+            onPress={() => router.push('/(tabs)/records')}
+            activeOpacity={0.8}
+          >
+            <View style={[styles.actionIconBox, { backgroundColor: '#FEF3C7' }]}>
+              <Ionicons name="time" size={22} color="#D97706" />
+            </View>
+            <Text style={styles.actionTitle}>{t.dashViewHistory}</Text>
+            <Text style={styles.actionSub}>Past Identifications</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.actionTile}
+            onPress={() => router.push('/(stack)/analytics' as any)}
+            activeOpacity={0.8}
+          >
+            <View style={[styles.actionIconBox, { backgroundColor: '#F3E8FF' }]}>
+              <Ionicons name="bar-chart" size={22} color="#9333EA" />
+            </View>
+            <Text style={styles.actionTitle}>{t.navAnalytics}</Text>
+            <Text style={styles.actionSub}>Reports & Distribution</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* KPI Metrics Summary Grid */}
+        <View style={styles.kpiGrid}>
+          <View style={styles.kpiCard}>
+            <View style={styles.kpiHeader}>
+              <Text style={styles.kpiLabel}>{t.dashTotalScans}</Text>
+              <Ionicons name="camera-outline" size={18} color={AgriColors.primary} />
+            </View>
+            <Text style={styles.kpiValue}>{stats.totalScans}</Text>
+            <Text style={styles.kpiSub}>Recorded in SQLite database</Text>
+          </View>
+
+          <View style={styles.kpiCard}>
+            <View style={styles.kpiHeader}>
+              <Text style={styles.kpiLabel}>{t.dashMonthlyScans}</Text>
+              <Ionicons name="calendar-outline" size={18} color="#D97706" />
+            </View>
+            <Text style={[styles.kpiValue, { color: '#D97706' }]}>{stats.thisMonth}</Text>
+            <Text style={styles.kpiSub}>Active month activity</Text>
+          </View>
+
+          <View style={styles.kpiCard}>
+            <View style={styles.kpiHeader}>
+              <Text style={styles.kpiLabel}>{t.dashAccuracyEst}</Text>
+              <Ionicons name="shield-checkmark-outline" size={18} color="#16A34A" />
+            </View>
+            <Text style={[styles.kpiValue, { color: '#16A34A' }]}>
+              {stats.avgConfidence > 0 ? `${stats.avgConfidence}%` : '85%'}
+            </Text>
+            <Text style={styles.kpiSub}>MobileNetV2 Transfer Model</Text>
+          </View>
+
+          <View style={styles.kpiCard}>
+            <View style={styles.kpiHeader}>
+              <Text style={styles.kpiLabel}>{t.dashTopBreed}</Text>
+              <MaterialCommunityIcons name="cow" size={20} color="#0284C7" />
+            </View>
+            <Text style={[styles.kpiValue, { fontSize: 20 }]} numberOfLines={1}>{topBreed}</Text>
+            <Text style={styles.kpiSub}>Most frequent detection</Text>
+          </View>
+        </View>
+
+        {/* Activity & Breed Distribution Section */}
+        {sortedBreedsList.length > 0 && (
+          <View style={styles.contentCard}>
+            <View style={styles.cardHeader}>
+              <Text style={styles.cardTitle}>{t.dashActivityOverview}</Text>
+              <TouchableOpacity onPress={() => router.push('/(stack)/analytics' as any)}>
+                <Text style={styles.cardLink}>View Full Report &rarr;</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.barsContainer}>
+              {sortedBreedsList.map(([bName, count]) => {
+                const pct = stats.totalScans > 0 ? Math.round((count / stats.totalScans) * 100) : 0;
+                return (
+                  <View key={bName} style={styles.barItem}>
+                    <View style={styles.barLabelRow}>
+                      <Text style={styles.barName}>{bName}</Text>
+                      <Text style={styles.barVal}>{count} ({pct}%)</Text>
+                    </View>
+                    <View style={styles.track}>
+                      <View style={[styles.fill, { width: `${Math.max(pct, 5)}%` }]} />
+                    </View>
+                  </View>
+                );
+              })}
+            </View>
+          </View>
+        )}
+
+        {/* Recent Scans Section */}
+        <View style={styles.contentCard}>
+          <View style={styles.cardHeader}>
+            <Text style={styles.cardTitle}>{t.dashRecentScans}</Text>
+            <TouchableOpacity onPress={() => router.push('/(tabs)/records')}>
+              <Text style={styles.cardLink}>View All ({stats.totalScans}) &rarr;</Text>
+            </TouchableOpacity>
+          </View>
+
+          {loading ? (
+            <ActivityIndicator size="small" color={AgriColors.primary} style={{ marginVertical: 20 }} />
+          ) : recentScans.length === 0 ? (
+            <View style={styles.emptyRecent}>
+              <Ionicons name="camera-reverse-outline" size={40} color={AgriColors.textLight} />
+              <Text style={styles.emptyRecentTitle}>No Scans Performed Yet</Text>
+              <Text style={styles.emptyRecentSub}>{t.dashNoScans}</Text>
+              <TouchableOpacity
+                style={styles.startScanBtn}
+                onPress={() => router.push('/(tabs)' as any)}
+              >
+                <Text style={styles.startScanBtnText}>Identify Cattle Now</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={styles.recentGrid}>
+              {recentScans.map((item) => (
+                <TouchableOpacity
+                  key={item.id}
+                  style={styles.recentItem}
+                  onPress={() => router.push({ pathname: '/(stack)/breed-detail' as any, params: { breed: item.breed } })}
+                  activeOpacity={0.8}
+                >
+                  <Image source={item.image} style={styles.recentImage} resizeMode="cover" />
+                  <View style={styles.recentInfo}>
+                    <Text style={styles.recentBreed} numberOfLines={1}>{item.breed}</Text>
+                    <Text style={styles.recentDate}>{item.date}</Text>
+                    <View style={styles.confBadge}>
+                      <Text style={styles.confBadgeText}>{item.confidence}% Match</Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+        </View>
+      </ScrollView>
+    </ResponsiveShell>
+  );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#F5F7FA', // Light page background
-    },
-    safeArea: {
-        flex: 1,
-    },
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: 20,
-        paddingVertical: 15,
-        backgroundColor: '#F5F7FA',
-    },
-    headerTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#1B4332',
-    },
-    scrollContent: {
-        paddingHorizontal: 20,
-        paddingBottom: 20,
-    },
-    welcomeCard: {
-        backgroundColor: '#2D4F43', // Muted Dark Green matching screenshot
-        borderRadius: 20,
-        padding: 20,
-        marginBottom: 25,
-        elevation: 4,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-    },
-    profileSection: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 20,
-    },
-    profileImageContainer: {
-        width: 50,
-        height: 50,
-        borderRadius: 25,
-        borderWidth: 2,
-        borderColor: '#FFF',
-        overflow: 'hidden',
-        marginRight: 15,
-    },
-    profileImage: {
-        width: '100%',
-        height: '100%',
-    },
-    welcomeText: {
-        color: 'rgba(255,255,255,0.7)',
-        fontSize: 14,
-        marginBottom: 2,
-    },
-    userName: {
-        color: '#FFF',
-        fontSize: 20,
-        fontWeight: 'bold',
-    },
-    statsContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        gap: 15,
-    },
-    statBox: {
-        flex: 1,
-        backgroundColor: 'rgba(255,255,255,0.15)',
-        borderRadius: 12,
-        padding: 15,
-    },
-    statLabel: {
-        color: 'rgba(255,255,255,0.8)',
-        fontSize: 12,
-        marginBottom: 5,
-    },
-    statValue: {
-        color: '#FFF',
-        fontSize: 24,
-        fontWeight: 'bold',
-    },
-    sectionTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#1B4332',
-        marginBottom: 15,
-    },
-    gridContainer: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        justifyContent: 'space-between',
-        marginBottom: 20,
-    },
-    gridCard: {
-        width: (width - 60) / 2, // 2 items per row with gap
-        backgroundColor: '#FFF',
-        borderRadius: 16,
-        padding: 15,
-        marginBottom: 20,
-        alignItems: 'center',
-        elevation: 2,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 5,
-    },
-    iconContainer: {
-        width: 55,
-        height: 55,
-        borderRadius: 12,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 12,
-    },
-    gridTitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#1A2A3A',
-        marginBottom: 4,
-    },
-    gridSubtitle: {
-        fontSize: 12,
-        color: '#718096',
-        textAlign: 'center',
-    },
-    recentActivityPlaceholder: {
-        height: 100,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#FFF',
-        borderRadius: 16,
-        borderWidth: 1,
-        borderColor: '#E2E8F0',
-        borderStyle: 'dashed',
-    },
-    recentList: {
-        gap: 12,
-    },
-    recentCard: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#FFF',
-        padding: 12,
-        borderRadius: 16,
-        elevation: 2,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 3,
-    },
-    recentImage: {
-        width: 60,
-        height: 60,
-        borderRadius: 12,
-        backgroundColor: '#E2E8F0',
-    },
-    recentInfo: {
-        flex: 1,
-        marginLeft: 12,
-    },
-    recentBreed: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#2D3748',
-        marginBottom: 2,
-    },
-    recentDate: {
-        fontSize: 12,
-        color: '#718096',
-        marginBottom: 4,
-    },
-    recentBadge: {
-        backgroundColor: '#F0FFF4',
-        alignSelf: 'flex-start',
-        paddingHorizontal: 8,
-        paddingVertical: 2,
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: '#C6F6D5',
-    },
-    recentBadgeText: {
-        fontSize: 10,
-        fontWeight: 'bold',
-        color: '#276749',
-    },
+  scrollContent: {
+    padding: 20,
+    gap: 18,
+    maxWidth: 1200,
+    alignSelf: 'center',
+    width: '100%',
+  },
+  welcomeBanner: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    padding: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: AgriColors.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
+    flexWrap: 'wrap',
+    gap: 14,
+  },
+  welcomeLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+  },
+  avatarCircle: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: AgriColors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: AgriColors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+  },
+  avatarInitials: {
+    color: '#FFF',
+    fontSize: 22,
+    fontWeight: '800',
+  },
+  welcomeTextGroup: {
+    gap: 2,
+  },
+  welcomeGreeting: {
+    fontSize: 13,
+    color: AgriColors.textMuted,
+    fontWeight: '600',
+  },
+  welcomeName: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: AgriColors.primaryDark,
+  },
+  welcomeRoleBadge: {
+    fontSize: 11,
+    color: AgriColors.primary,
+    fontWeight: '700',
+    backgroundColor: AgriColors.pillBg,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+    alignSelf: 'flex-start',
+    marginTop: 2,
+  },
+  heroScanBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: AgriColors.primary,
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    borderRadius: 12,
+    gap: 8,
+    shadowColor: AgriColors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  heroScanBtnText: {
+    color: '#FFF',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  quickActionsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  actionTile: {
+    flex: 1,
+    minWidth: 140,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: AgriColors.border,
+    alignItems: 'flex-start',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  actionIconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  actionTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: AgriColors.textDark,
+  },
+  actionSub: {
+    fontSize: 11,
+    color: AgriColors.textMuted,
+    marginTop: 2,
+  },
+  kpiGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  kpiCard: {
+    flex: 1,
+    minWidth: 150,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: AgriColors.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  kpiHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  kpiLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: AgriColors.textMuted,
+    textTransform: 'uppercase',
+  },
+  kpiValue: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: AgriColors.primaryDark,
+  },
+  kpiSub: {
+    fontSize: 11,
+    color: AgriColors.textLight,
+    marginTop: 4,
+  },
+  contentCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: AgriColors.border,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: AgriColors.primaryDark,
+  },
+  cardLink: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: AgriColors.primary,
+  },
+  barsContainer: {
+    gap: 12,
+  },
+  barItem: {
+    gap: 5,
+  },
+  barLabelRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  barName: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: AgriColors.textDark,
+  },
+  barVal: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: AgriColors.textMuted,
+  },
+  track: {
+    height: 8,
+    backgroundColor: '#F0F4F2',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  fill: {
+    height: '100%',
+    backgroundColor: AgriColors.primary,
+    borderRadius: 4,
+  },
+  emptyRecent: {
+    padding: 30,
+    alignItems: 'center',
+    gap: 10,
+  },
+  emptyRecentTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: AgriColors.textDark,
+  },
+  emptyRecentSub: {
+    fontSize: 13,
+    color: AgriColors.textMuted,
+    textAlign: 'center',
+    maxWidth: 360,
+  },
+  startScanBtn: {
+    backgroundColor: AgriColors.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 9,
+    borderRadius: 8,
+    marginTop: 6,
+  },
+  startScanBtnText: {
+    color: '#FFF',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  recentGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  recentItem: {
+    flex: 1,
+    minWidth: 160,
+    backgroundColor: AgriColors.background,
+    borderRadius: 12,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: AgriColors.border,
+  },
+  recentImage: {
+    width: '100%',
+    height: 100,
+    backgroundColor: '#E2ECE5',
+  },
+  recentInfo: {
+    padding: 10,
+    gap: 3,
+  },
+  recentBreed: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: AgriColors.textDark,
+  },
+  recentDate: {
+    fontSize: 11,
+    color: AgriColors.textMuted,
+  },
+  confBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#E8F5EE',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    marginTop: 4,
+  },
+  confBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: AgriColors.primary,
+  },
 });

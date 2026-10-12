@@ -43,7 +43,7 @@ export default function OnboardingIntro() {
                     <TouchableOpacity
                         style={styles.button}
                         activeOpacity={0.8}
-                        onPress={() => router.push('/(onboarding)/field-guide')}
+                        onPress={() => router.push('/field-guide')}
                     >
                         <Text style={styles.buttonText}>Next</Text>
                     </TouchableOpacity>

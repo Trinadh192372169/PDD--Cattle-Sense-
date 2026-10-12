@@ -8,6 +8,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 const { width } = Dimensions.get('window');
 
 import { BREED_DATA, DEFAULT_BREED } from '../../constants/breedData';
+import { AgriColors } from '@/constants/theme';
 
 export default function BreedDetailScreen() {
     const router = useRouter();
@@ -52,24 +53,24 @@ export default function BreedDetailScreen() {
                         </TouchableOpacity>
                     </SafeAreaView>
                     <View style={styles.headerText}>
-                        <View style={styles.tag}>
-                            <Text style={styles.tagText}>{data.type}</Text>
+                        <View style={[styles.tag, { backgroundColor: AgriColors.primary }]}>
+                            <Text style={styles.tagText}>{data.type || 'Indigenous Cattle'}</Text>
                         </View>
                         <Text style={styles.title}>{data.name}</Text>
                         <Text style={styles.location}>
-                            <Ionicons name="location" size={16} color="#DDD" /> {data.origin}
+                            <Ionicons name="location" size={16} color="#E0EBE4" /> {data.origin}
                         </Text>
                     </View>
                 </LinearGradient>
             </View>
 
-            <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+            <ScrollView style={styles.content} contentContainerStyle={{ maxWidth: 900, alignSelf: 'center', width: '100%' }} showsVerticalScrollIndicator={false}>
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Physical Characteristics</Text>
+                    <Text style={[styles.sectionTitle, { color: AgriColors.primaryDark }]}>Physical Characteristics</Text>
                     <View style={styles.traitsList}>
-                        {data.traits.map((trait: string, idx: number) => (
+                        {data.traits && data.traits.map((trait: string, idx: number) => (
                             <View key={idx} style={styles.traitItem}>
-                                <Ionicons name="paw" size={16} color="#FF8008" />
+                                <Ionicons name="shield-checkmark" size={16} color={AgriColors.primary} />
                                 <Text style={styles.traitText}>{trait}</Text>
                             </View>
                         ))}
@@ -77,23 +78,20 @@ export default function BreedDetailScreen() {
                 </View>
 
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Description</Text>
+                    <Text style={[styles.sectionTitle, { color: AgriColors.primaryDark }]}>Historical Background & Habitat</Text>
                     <Text style={styles.bodyText}>{data.desc}</Text>
                 </View>
 
                 <View style={styles.gridSection}>
                     <View style={styles.gridItem}>
                         <Text style={styles.gridLabel}>Milk Yield / Lactation</Text>
-                        <Text style={styles.gridValue}>{data.milkYield}</Text>
+                        <Text style={[styles.gridValue, { color: AgriColors.primary }]}>{data.milkYield || 'Moderate'}</Text>
                     </View>
                     <View style={styles.gridItem}>
                         <Text style={styles.gridLabel}>Conservation Status</Text>
-                        <Text style={styles.gridValue}>Least Concern</Text>
+                        <Text style={[styles.gridValue, { color: '#16A34A' }]}>Indigenous Preserved</Text>
                     </View>
                 </View>
-
-                {/* Simulated similar breeds */}
-                {/* Similar breeds section removed */}
 
                 <View style={{ height: 40 }} />
             </ScrollView>
@@ -104,10 +102,10 @@ export default function BreedDetailScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F5F7FA',
+        backgroundColor: AgriColors.background,
     },
     imageHeader: {
-        height: 350,
+        height: 320,
         width: '100%',
         position: 'relative',
     },

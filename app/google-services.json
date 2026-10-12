@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "655004999375",
+    "project_id": "ai-based-breed-identification",
+    "storage_bucket": "ai-based-breed-identification.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:655004999375:android:d1a5ea498fe475ed50a1ba",
+        "android_client_info": {
+          "package_name": "com.simats.cattlesense"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAVZy96NVlY5VJICSGkOuDmGtFnXhbWAdY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

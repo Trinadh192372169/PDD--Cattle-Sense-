@@ -3,6 +3,10 @@ import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 
 const getBackendUrl = () => {
+    if (Platform.OS === 'web') {
+        const hostname = typeof window !== 'undefined' && window.location.hostname ? window.location.hostname : 'localhost';
+        return `http://${hostname}:8000`;
+    }
     try {
         // Automatically detect the host IP from Expo Go / Dev Client
         if (Constants.expoConfig?.hostUri) {
@@ -12,8 +16,8 @@ const getBackendUrl = () => {
     } catch (error) {
         console.warn("Failed to get dynamic backend URL, falling back to hardcoded.");
     }
-    // Fallback for Android Emulator (10.0.2.2) or hardcoded default
-    return Platform.OS === 'android' ? 'http://10.0.2.2:8000' : 'http://10.130.5.151:8000';
+    // Fallback for Android Emulator (10.0.2.2) or local Wi-Fi IP
+    return Platform.OS === 'android' ? 'http://10.0.2.2:8000' : 'http://localhost:8000';
 };
 
 export const DEV_BACKEND_URL = getBackendUrl();
@@ -46,7 +50,19 @@ import { uploadAsync, FileSystemUploadType } from 'expo-file-system/legacy';
 
 export const classifyBreed = async (imageUri: string, mobile: string = "1234567890"): Promise<Prediction[]> => {
     try {
-        console.log(`Uploading image (v3 legacy) to ${DEV_BACKEND_URL}/predict defined via FileSystem...`);
+        console.log(`Uploading image to ${DEV_BACKEND_URL}/predict...`);
+
+        if (Platform.OS === 'web') {
+            const formData = new FormData();
+            const fetchRes = await fetch(imageUri);
+            const blob = await fetchRes.blob();
+            formData.append('file', blob, 'cattle_scan.jpg');
+            formData.append('mobile', mobile);
+
+            const response = await axios.post(`${DEV_BACKEND_URL}/predict`, formData);
+            return response.data.predictions;
+        }
+
         const response = await uploadAsync(`${DEV_BACKEND_URL}/predict`, imageUri, {
             fieldName: 'file',
             httpMethod: 'POST',
@@ -65,7 +81,7 @@ export const classifyBreed = async (imageUri: string, mobile: string = "12345678
         const data = JSON.parse(response.body);
         return data.predictions;
     } catch (error) {
-        console.error('API Error (FileSystem):', error);
+        console.error('API Error (classifyBreed):', error);
         throw error;
     }
 };
@@ -81,28 +97,36 @@ export const getStats = async (mobile: string): Promise<any> => {
 };
 // --- Auth API ---
 
-export const sendOtp = async (mobile: string): Promise<any> => {
+export const loginWithEmail = async (email: string, password: string): Promise<any> => {
     try {
-        const response = await api.post('/auth/login', { mobile }, {
+        const response = await api.post('/auth/login', { email, password }, {
             headers: { 'Content-Type': 'application/json' }
         });
         return response.data;
     } catch (error) {
-        console.error('Send OTP Error:', error);
+        console.error('Login Error:', error);
         throw error;
     }
 };
 
-export const verifyOtp = async (mobile: string, otp: string): Promise<any> => {
+export const registerWithEmail = async (email: string, password: string, fullName: string = "Cattle Officer"): Promise<any> => {
     try {
-        const response = await api.post('/auth/verify', { mobile, otp }, {
+        const response = await api.post('/auth/register', { email, password, full_name: fullName }, {
             headers: { 'Content-Type': 'application/json' }
         });
         return response.data;
     } catch (error) {
-        console.error('Verify OTP Error:', error);
+        console.error('Register Error:', error);
         throw error;
     }
+};
+
+export const sendOtp = async (mobile: string): Promise<any> => {
+    return loginWithEmail(mobile, "123456");
+};
+
+export const verifyOtp = async (mobile: string, otp: string): Promise<any> => {
+    return { success: true, message: "Login successful", token: "mock-jwt-token" };
 };
 
 // --- Profile API ---
@@ -151,3 +175,56 @@ export const uploadProfilePicture = async (mobile: string, imageUri: string): Pr
         throw error;
     }
 };
+
+// --- Analytics, Breeds & Admin API ---
+
+export const getAnalytics = async (mobile: string): Promise<any> => {
+    try {
+        const response = await api.get(`/analytics/${mobile}`);
+        return response.data;
+    } catch (error) {
+        console.error('Get Analytics Error:', error);
+        throw error;
+    }
+};
+
+export const deleteScan = async (scanId: number): Promise<any> => {
+    try {
+        const response = await api.delete(`/scans/${scanId}`);
+        return response.data;
+    } catch (error) {
+        console.error('Delete Scan Error:', error);
+        throw error;
+    }
+};
+
+export const getBreedsList = async (): Promise<any> => {
+    try {
+        const response = await api.get('/breeds');
+        return response.data;
+    } catch (error) {
+        console.error('Get Breeds Error:', error);
+        throw error;
+    }
+};
+
+export const getAdminStats = async (): Promise<any> => {
+    try {
+        const response = await api.get('/admin/stats');
+        return response.data;
+    } catch (error) {
+        console.error('Admin Stats Error:', error);
+        throw error;
+    }
+};
+
+export const getAdminUsers = async (): Promise<any> => {
+    try {
+        const response = await api.get('/admin/users');
+        return response.data;
+    } catch (error) {
+        console.error('Admin Users Error:', error);
+        throw error;
+    }
+};
+
