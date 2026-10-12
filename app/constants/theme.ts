@@ -8,22 +8,48 @@ import { Platform } from 'react-native';
 const tintColorLight = '#0a7ea4';
 const tintColorDark = '#fff';
 
+export const AgriColors = {
+  primary: '#176B45',         // Primary forest green
+  primaryDark: '#123524',     // Dark green headings
+  heading: '#123524',         // Dark green headings alias
+  secondary: '#24865A',       // Secondary green
+  secondaryLight: '#34A06F',  // Accent green
+  surface: '#E8F5EE',         // Light tint surface
+  background: '#F4FAF5',      // Clean light background
+  cardBg: '#FFFFFF',          // Pure white card background
+  border: '#E0EBE4',          // Soft border
+  borderSubtle: '#EDF4EE',    // Ultra-light border
+  textDark: '#123524',        // Deep forest text
+  textMedium: '#2C3E35',      // Body text
+  textMuted: '#5B6E64',       // Subtitles / captions
+  textLight: '#8C9E95',       // Placeholders
+  accentGold: '#D97706',      // Alert / warm accent
+  accentRed: '#DC2626',       // Error / danger
+  accentBlue: '#2563EB',      // Info
+  pillBg: '#E8F5EE',          // Light badge fill
+  pillText: '#176B45',        // Light badge text
+};
+
 export const Colors = {
   light: {
-    text: '#11181C',
-    background: '#fff',
-    tint: tintColorLight,
-    icon: '#687076',
-    tabIconDefault: '#687076',
-    tabIconSelected: tintColorLight,
+    text: AgriColors.textDark,
+    background: AgriColors.background,
+    tint: AgriColors.primary,
+    icon: AgriColors.textMuted,
+    tabIconDefault: '#7D9287',
+    tabIconSelected: AgriColors.primary,
+    card: AgriColors.cardBg,
+    border: AgriColors.border,
   },
   dark: {
     text: '#ECEDEE',
-    background: '#151718',
-    tint: tintColorDark,
+    background: '#0D1E16',
+    tint: '#34A06F',
     icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
-    tabIconSelected: tintColorDark,
+    tabIconDefault: '#5F7368',
+    tabIconSelected: '#34A06F',
+    card: '#142920',
+    border: '#1F382D',
   },
 };
 

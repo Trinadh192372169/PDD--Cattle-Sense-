@@ -27,7 +27,7 @@ export default function TestPage() {
                     title="Try to Navigate to Onboarding"
                     onPress={() => {
                         console.log('Trying to navigate to onboarding');
-                        router.push('/(onboarding)/index');
+                        router.push('/(onboarding)' as any);
                     }}
                     color="#FF8008"
                 />
