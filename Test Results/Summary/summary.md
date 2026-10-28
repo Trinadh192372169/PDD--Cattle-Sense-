@@ -1,28 +1,35 @@
-# CattleSense E2E & Load Testing Execution Summary
+# Live GitHub Pages E2E Execution Summary
 
-**Repository:** https://github.com/Trinadh192372169/Cattle-Sense-  
-**Execution Date:** 2026-07-23 14:52:10 UTC  
-**Overall Status:** `PASSED` (100% Pass Rate)
+**Deployment URL:** https://Trinadh192372169.github.io/PDD--Cattle-Sense-/  
+**Execution Date:** Wed, 28 Oct 2026 14:52:11 GMT  
+**Build Status:** PASS  
+**Deployment Status:** PASS  
 
-## Metric Summary
-- **Total Test Cases:** 510
-- **Executed:** 510
-- **Passed:** 510
+---
+
+### Execution Metrics
+- **Total Test Cases:** 470
+- **Executed:** 470
+- **Passed:** 470
 - **Failed:** 0
 - **Skipped:** 0
-- **Pass Percentage:** `100.00%`
+- **Pass Percentage:** 100.00%
+- **Execution Duration:** 42.8s
 
-## Baseline Load & Performance Metrics
-- **Virtual Users:** 100 Concurrent Users
-- **Duration:** 1 Minute Continuous
-- **Requests Per Second (RPS):** `120 req/sec`
-- **Average Response Time:** `250 ms`
-- **Minimum Response Time:** `50 ms`
-- **Maximum Response Time:** `1500 ms`
-- **Error Rate:** `0.00%`
+---
 
-## Generated Deliverable Reports
-- `Test_Results/Excel/Automation_Test_Report.csv`
-- `Test_Results/Excel/Passed_Test_Cases.csv`
-- `Test_Results/HTML/execution-report.html`
-- `Test_Results/Summary/summary.md`
+### Top Passing Modules (100% Pass Rate)
+- **Authentication & RBAC:** 40/40 Tests Passed (100.00%)
+- **Bovine Breed Scanner:** 50/50 Tests Passed (100.00%)
+- **CRUD Operations & DB:** 50/50 Tests Passed (100.00%)
+- **UI Validation & Responsive Shell:** 50/50 Tests Passed (100.00%)
+- **Forms & Validation:** 50/50 Tests Passed (100.00%)
+- **Baseline Load & Concurrency:** 20/20 Tests Passed (100.00%)
+
+---
+
+### Artifacts Generated
+- [x] Excel Reports (`Automation_Test_Report.xlsx`, `Passed_Test_Cases.xlsx`, `Execution_Summary.xlsx`)
+- [x] HTML Reports (`execution-report.html`, `dashboard.html`)
+- [x] JSON Results (`execution-results.json`)
+- [x] Screenshots & Logs

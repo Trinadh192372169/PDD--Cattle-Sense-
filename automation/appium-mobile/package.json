@@ -1,0 +1,26 @@
+{
+  "name": "cattlesense-appium-mobile-automation",
+  "version": "2.0.0",
+  "description": "Enterprise-Grade Android Mobile Appium Automation Framework for CattleSense",
+  "main": "runner.js",
+  "scripts": {
+    "test": "node runner.js",
+    "test:emulator": "DEVICE=emulator node runner.js",
+    "test:device": "DEVICE=physical node runner.js"
+  },
+  "keywords": [
+    "appium",
+    "android",
+    "mobile-automation",
+    "e2e",
+    "cattlesense",
+    "pom",
+    "excel-report"
+  ],
+  "author": "CattleSense Mobile QA Team",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "xlsx": "^0.18.5"
+  }
+}

@@ -1,0 +1,54 @@
+name: Backend Security Review & Baseline Load Testing
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  security-audit-and-load-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Stage 1: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Stage 2: Setup Python 3.12
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Stage 3: Install Backend Audit Tools
+        run: |
+          pip install openpyxl requests
+
+      - name: Stage 4: Run Backend Discovery & Security Tests (400+ Test Cases)
+        run: |
+          python automation/security/build_all_security_deliverables.py
+
+      - name: Stage 5: Execute Baseline Concurrent Load Test (100 VUs, 1 Min)
+        run: |
+          python automation/run_baseline_load_test.py
+
+      - name: Stage 6: Upload Vulnerability & Performance Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: CattleSense-Security-And-Load-Artifacts
+          path: |
+            Vulnerability Test Results/*.xlsx
+            Vulnerability Test Results/*.md
+            Vulnerability Test Results/*.js
+            Vulnerability Test Results/*.yml
+            Vulnerability Test Results/*.jmx
+          retention-days: 30
+
+      - name: Stage 7: Publish GitHub Action Summary
+        if: always()
+        run: |
+          cat "Vulnerability Test Results/performance-report.md" >> $GITHUB_STEP_SUMMARY

@@ -1,0 +1,28 @@
+{
+  "name": "cattlesense-selenium-automation",
+  "version": "2.0.0",
+  "description": "Enterprise-Grade Selenium E2E Web Automation Framework for CattleSense",
+  "main": "runner.js",
+  "scripts": {
+    "test": "node runner.js",
+    "test:headless": "HEADLESS=true node runner.js",
+    "report:excel": "node utils/excelReporter.js",
+    "report:html": "node utils/htmlReporter.js"
+  },
+  "keywords": [
+    "selenium",
+    "e2e",
+    "testing",
+    "cattlesense",
+    "automation",
+    "excel-report",
+    "pom"
+  ],
+  "author": "CattleSense QA Automation Team",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "selenium-webdriver": "^4.21.0",
+    "xlsx": "^0.18.5"
+  }
+}

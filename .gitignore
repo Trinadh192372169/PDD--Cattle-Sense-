@@ -1,5 +1,8 @@
 # Dependencies
 app/node_modules/
+automation/selenium-nodejs/node_modules/
+automation/appium-mobile/node_modules/
+**/node_modules/
 backend/__pycache__/
 ml_pipeline/__pycache__/
 *.pyc
