@@ -1,0 +1,10 @@
+{
+  "name": "cattlesense-root",
+  "private": true,
+  "scripts": {
+    "start": "cd app && npm start",
+    "web": "cd app && npm run web",
+    "android": "cd app && npm run android",
+    "ios": "cd app && npm run ios"
+  }
+}
