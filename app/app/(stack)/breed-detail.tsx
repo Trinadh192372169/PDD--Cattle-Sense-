@@ -9,6 +9,7 @@ const { width } = Dimensions.get('window');
 
 import { BREED_DATA, DEFAULT_BREED } from '../../constants/breedData';
 import { AgriColors } from '@/constants/theme';
+import { BreedVideosSection } from '../../components/BreedVideosSection';
 
 export default function BreedDetailScreen() {
     const router = useRouter();
@@ -91,6 +92,11 @@ export default function BreedDetailScreen() {
                         <Text style={styles.gridLabel}>Conservation Status</Text>
                         <Text style={[styles.gridValue, { color: '#16A34A' }]}>Indigenous Preserved</Text>
                     </View>
+                </View>
+
+                {/* YouTube Livestock Care Videos */}
+                <View style={{ marginTop: 16 }}>
+                    <BreedVideosSection breedName={data.name} />
                 </View>
 
                 <View style={{ height: 40 }} />

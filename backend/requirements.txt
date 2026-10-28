@@ -7,3 +7,7 @@ pillow
 scikit-learn
 twilio
 sqlalchemy
+psycopg2-binary
+gTTS
+youtube-search-python
+python-dotenv

@@ -1,6 +1,8 @@
 @echo off
-cd backend
-echo Starting CattleSense Backend on Port 8000...
-call .\.venv\Scripts\activate
+cd /d "%~dp0backend"
+echo ========================================================
+echo Starting CattleSense FastAPI Backend on http://localhost:8000
+echo ========================================================
+call .\.venv\Scripts\activate.bat
 python main.py
 pause

@@ -158,7 +158,7 @@ export default function HomeScreen() {
 
           <TouchableOpacity
             style={styles.heroScanBtn}
-            onPress={() => router.push('/(tabs)' as any)}
+            onPress={() => router.push('/(tabs)/scanner' as any)}
             activeOpacity={0.85}
           >
             <Ionicons name="scan" size={20} color="#FFF" />
@@ -170,7 +170,7 @@ export default function HomeScreen() {
         <View style={styles.quickActionsRow}>
           <TouchableOpacity
             style={styles.actionTile}
-            onPress={() => router.push('/(tabs)' as any)}
+            onPress={() => router.push('/(tabs)/scanner' as any)}
             activeOpacity={0.8}
           >
             <View style={[styles.actionIconBox, { backgroundColor: '#E8F5EE' }]}>
@@ -305,7 +305,7 @@ export default function HomeScreen() {
               <Text style={styles.emptyRecentSub}>{t.dashNoScans}</Text>
               <TouchableOpacity
                 style={styles.startScanBtn}
-                onPress={() => router.push('/(tabs)' as any)}
+                onPress={() => router.push('/(tabs)/scanner' as any)}
               >
                 <Text style={styles.startScanBtnText}>Identify Cattle Now</Text>
               </TouchableOpacity>

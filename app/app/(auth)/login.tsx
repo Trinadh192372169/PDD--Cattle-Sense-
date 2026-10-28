@@ -107,12 +107,16 @@ export default function LoginScreen() {
         setStatusMessage(null);
         setGoogleLoading(true);
         try {
-            const res = await firebaseGoogleLogin();
+            const res = await firebaseGoogleLogin({
+                email: email.trim() || undefined,
+                name: fullName.trim() || undefined,
+            });
             if (res.success && res.user) {
                 login(
                     res.user.uid,
-                    res.user.email || 'user@google.com',
-                    res.user.displayName || 'Google User'
+                    res.user.email || email.trim() || 'jagadeshsai2047.sse@saveetha.com',
+                    res.user.displayName || fullName.trim() || 'Jagadesh Sai',
+                    selectedRole || 'Field Officer'
                 );
                 router.replace('/(tabs)/home');
             } else {

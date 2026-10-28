@@ -51,7 +51,7 @@ export const ResponsiveShell: React.FC<ResponsiveShellProps> = ({
 
   const navItems = [
     { key: 'dashboard', label: t.navDashboard, icon: 'home-outline', route: '/(tabs)/home' },
-    { key: 'scanner', label: t.navScanner, icon: 'scan-outline', route: '/(tabs)/index' },
+    { key: 'scanner', label: t.navScanner, icon: 'scan-outline', route: '/(tabs)/scanner' },
     { key: 'breeds', label: t.navBreedLibrary, icon: 'book-outline', route: '/(stack)/breed-library' },
     { key: 'records', label: t.navHistory, icon: 'time-outline', route: '/(tabs)/records' },
     { key: 'analytics', label: t.navAnalytics, icon: 'bar-chart-outline', route: '/(stack)/analytics' },
@@ -212,7 +212,7 @@ export const ResponsiveShell: React.FC<ResponsiveShellProps> = ({
               {isDesktop && activeRoute !== 'scanner' && (
                 <TouchableOpacity
                   style={styles.quickScanBtn}
-                  onPress={() => router.push('/(tabs)' as any)}
+                  onPress={() => router.push('/(tabs)/scanner' as any)}
                   activeOpacity={0.85}
                 >
                   <Ionicons name="scan-circle" size={18} color="#FFF" />

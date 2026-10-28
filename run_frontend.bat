@@ -1,5 +1,5 @@
 @echo off
-cd app
-echo Starting CattleSense React Native Frontend (Expo)...
-npm start
+cd /d "%~dp0app"
+echo Starting CattleSense Web Frontend (Expo)...
+npm run web
 pause

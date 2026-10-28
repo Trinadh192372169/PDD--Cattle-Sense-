@@ -270,7 +270,7 @@ export default function RecordsScreen() {
                 </Text>
                 <TouchableOpacity
                   style={styles.scanNowBtn}
-                  onPress={() => router.push('/(tabs)' as any)}
+                  onPress={() => router.push('/(tabs)/scanner' as any)}
                 >
                   <Ionicons name="camera" size={16} color="#FFF" />
                   <Text style={styles.scanNowBtnText}>Perform First Scan</Text>

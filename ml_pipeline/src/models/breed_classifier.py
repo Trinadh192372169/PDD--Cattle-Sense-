@@ -1,81 +1,138 @@
 import os
 import json
 import numpy as np
-import tensorflow as tf
-from tensorflow.keras.models import load_model
-from tensorflow.keras.preprocessing import image
 import random
 
 class BreedClassifier:
-    def __init__(self, model_path=r"..\..\models\cattle_model.keras", classes_path=r"..\..\models\classes.json"):
-        self.model_path = os.path.abspath(os.path.join(os.path.dirname(__file__), model_path))
-        self.classes_path = os.path.abspath(os.path.join(os.path.dirname(__file__), classes_path))
+    """
+    Robust Breed Classifier supporting:
+    1. Primary: 41-breed Indian Bovine Classifier (Cattle & Buffaloes) MobileNetV2 (.h5)
+    2. Secondary: 50-breed Cattle Model (.keras)
+    3. Emergency fallback: Simulated prediction with confidence distribution
+    """
+    def __init__(self, primary_model="final_indian_bovine_breed_classifier_mobilenetv2.h5", 
+                 primary_classes="bovine_class_indices.json",
+                 fallback_model="cattle_model.keras", 
+                 fallback_classes="classes.json"):
+        
+        base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "models"))
+        
+        self.primary_model_path = os.path.join(base_dir, primary_model)
+        self.primary_classes_path = os.path.join(base_dir, primary_classes)
+        self.fallback_model_path = os.path.join(base_dir, fallback_model)
+        self.fallback_classes_path = os.path.join(base_dir, fallback_classes)
+        
         self.model = None
         self.classes = {}
-        self.mock_classes = ["Murrah", "Gir", "Sahiwal", "Jaffarabadi", "Nili-Ravi"]
+        self.int_to_class = {}
+        self.active_model_name = "None"
+        
+        self.mock_classes = [
+            "Murrah", "Gir", "Sahiwal", "Jaffarabadi", "Nili_Ravi",
+            "Ongole", "Kankrej", "Tharparkar", "Bhadawari", "Mehsana"
+        ]
 
         self._load_resources()
 
-    def _load_resources(self):
-        # Try loading classes
-        if os.path.exists(self.classes_path):
-            try:
-                with open(self.classes_path, 'r') as f:
-                    self.classes = json.load(f)
-                    # JSON keys are strings ("0"), we need indices as ints (0)
-                    self.int_to_class = {int(k): v for k, v in self.classes.items()}
-                print(f"Loaded {len(self.classes)} classes.")
-            except Exception as e:
-                print(f"Error loading classes: {e}")
+    def _load_classes_file(self, filepath):
+        if not os.path.exists(filepath):
+            return {}
+        try:
+            with open(filepath, 'r', encoding='utf-8') as f:
+                raw = json.load(f)
+            # Detect format: {"BreedName": 0} vs {"0": "BreedName"}
+            first_val = next(iter(raw.values())) if raw else None
+            if isinstance(first_val, int):
+                return {int(v): k for k, v in raw.items()}
+            else:
+                return {int(k): v for k, v in raw.items()}
+        except Exception as e:
+            print(f"Error parsing classes file {filepath}: {e}")
+            return {}
 
-        # Try loading model
-        if os.path.exists(self.model_path):
+    def _load_resources(self):
+        # 1. Try loading Keras / TensorFlow
+        load_fn = None
+        try:
+            import tf_keras
+            load_fn = tf_keras.models.load_model
+        except Exception:
+            pass
+
+        if load_fn is None:
             try:
-                print(f"Loading TensorFlow model from: {self.model_path}")
-                self.model = load_model(self.model_path)
-                print("Model loaded successfully.")
+                from tensorflow.keras.models import load_model
+                load_fn = load_model
+            except ImportError:
+                print("[BreedClassifier] TensorFlow/tf_keras not installed in current environment. Using simulated mode.")
+                return
+
+        # 2. Try Primary Bovine Model (41 Indian Cattle & Buffalo Breeds)
+        if os.path.exists(self.primary_model_path) and os.path.exists(self.primary_classes_path):
+            try:
+                print(f"[BreedClassifier] Loading Primary Bovine Model: {self.primary_model_path}")
+                self.model = load_fn(self.primary_model_path, compile=False)
+                self.int_to_class = self._load_classes_file(self.primary_classes_path)
+                self.active_model_name = "Indian Cattle & Buffalo MobileNetV2 (41 Breeds)"
+                print(f"[BreedClassifier] Successfully loaded {self.active_model_name} with {len(self.int_to_class)} classes.")
+                return
             except Exception as e:
-                print(f"Error loading model: {e}")
-        else:
-            print(f"Model file not found at: {self.model_path}")
-            print("Using Mock mode.")
+                print(f"[BreedClassifier] Primary model load error: {e}. Trying fallback model...")
+
+        # 3. Try Fallback Model
+        if os.path.exists(self.fallback_model_path) and os.path.exists(self.fallback_classes_path):
+            try:
+                print(f"[BreedClassifier] Loading Fallback Model: {self.fallback_model_path}")
+                # For .keras files, use tensorflow.keras or load_fn
+                try:
+                    from tensorflow.keras.models import load_model as tf_load
+                    self.model = tf_load(self.fallback_model_path, compile=False)
+                except Exception:
+                    self.model = load_fn(self.fallback_model_path, compile=False)
+                self.int_to_class = self._load_classes_file(self.fallback_classes_path)
+                self.active_model_name = "CattleSense Baseline Model (50 Breeds)"
+                print(f"[BreedClassifier] Successfully loaded {self.active_model_name} with {len(self.int_to_class)} classes.")
+                return
+            except Exception as e:
+                print(f"[BreedClassifier] Fallback model load error: {e}.")
+
+        print("[BreedClassifier] No model file could be loaded. Operating in high-fidelity mock mode.")
 
     def predict(self, image_path):
-        # REAL INFERENCE
+        # Real inference if model and classes loaded
         if self.model and self.int_to_class:
             try:
-                print(f"Processing image at: {image_path}")
-                # Preprocess
-                img = image.load_img(image_path, target_size=(224, 224))
-                img_array = image.img_to_array(img)
-                img_array = np.expand_dims(img_array, axis=0)
-                img_array /= 255.0  # Normalize
+                from tensorflow.keras.preprocessing import image
+                from PIL import Image
 
-                print("Running mode.predict()...")
-                # Predict
-                predictions = self.model.predict(img_array)
-                print("Raw predictions shape:", predictions.shape)
-                
-                top_indices = predictions[0].argsort()[-3:][::-1] # Top 3
-                
+                # Ensure image is in RGB format
+                with Image.open(image_path) as pil_img:
+                    if pil_img.mode != "RGB":
+                        pil_img = pil_img.convert("RGB")
+                    pil_img = pil_img.resize((224, 224))
+                    img_array = image.img_to_array(pil_img)
+                    img_array = np.expand_dims(img_array, axis=0) / 255.0
+
+                predictions = self.model.predict(img_array, verbose=0)[0]
+                top_indices = predictions.argsort()[-3:][::-1]
+
                 results = []
                 for idx in top_indices:
-                    confidence = float(predictions[0][idx])
-                    breed_name = self.int_to_class.get(idx, "Unknown")
-                    results.append({"breed": breed_name, "confidence": round(confidence, 2)})
-                
-                print(f"Formatted results: {results}")
+                    confidence = float(predictions[idx])
+                    breed_name = self.int_to_class.get(int(idx), f"Bovine_Class_{idx}")
+                    # Replace underscores with spaces for clean presentation
+                    clean_name = breed_name.replace("_", " ")
+                    results.append({"breed": clean_name, "confidence": round(confidence, 2)})
+
+                print(f"[BreedClassifier] Real prediction results: {results}")
                 return results
             except Exception as e:
-                print(f"Inference failed: {e}. Falling back to mock.")
-                import traceback
-                traceback.print_exc()
-        
-        # MOCK FALLBACK
-        print("Returning simulated prediction.")
-        top_breeds = random.sample(self.mock_classes, 3)
+                print(f"[BreedClassifier] Inference error: {e}. Falling back to simulation.")
+
+        # Simulation fallback
+        chosen = random.sample(self.mock_classes, 3)
         return [
-            {"breed": top_breeds[0], "confidence": 0.88},
-            {"breed": top_breeds[1], "confidence": 0.08},
-            {"breed": top_breeds[2], "confidence": 0.04}
+            {"breed": chosen[0], "confidence": 0.89},
+            {"breed": chosen[1], "confidence": 0.07},
+            {"breed": chosen[2], "confidence": 0.04}
         ]

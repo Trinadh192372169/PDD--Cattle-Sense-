@@ -41,10 +41,16 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="index"
+        name="scanner"
         options={{
           title: 'Scan',
           tabBarIcon: ({ color }) => <Ionicons size={28} name="scan-circle" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="index"
+        options={{
+          href: null,
         }}
       />
       <Tabs.Screen

@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { AgriColors } from '../../constants/theme';
 import { ResponsiveShell } from '../../components/ResponsiveShell';
 import { useTranslation } from '../../locales/i18n';
+import { BreedVideosSection } from '../../components/BreedVideosSection';
 
 export default function ResultLowScreen() {
   const router = useRouter();
@@ -25,7 +26,7 @@ export default function ResultLowScreen() {
 
   const handleScanAgain = () => {
     resetScan();
-    router.replace('/(tabs)/index' as any);
+    router.replace('/(tabs)/scanner' as any);
   };
 
   return (
@@ -67,6 +68,10 @@ export default function ResultLowScreen() {
                   );
                 })}
               </View>
+            )}
+
+            {topPrediction.breed && topPrediction.breed !== 'Undetermined' && (
+              <BreedVideosSection breedName={topPrediction.breed} />
             )}
 
             <View style={styles.tipsBox}>

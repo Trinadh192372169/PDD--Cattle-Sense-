@@ -511,6 +511,106 @@ export const BREED_DATA: Record<string, BreedInfo> = {
         traits: ['Small', 'Black', 'Meat/Draft'],
         desc: 'Indigenous cattle of Nagaland. Used for draft and meat.',
         image: getBreedImage('Thutho')
+    },
+    'Murrah': {
+        id: '50',
+        name: 'Murrah',
+        type: 'Buffalo',
+        origin: 'Haryana (Rohtak, Hisar, Jind) & Punjab',
+        milkYield: '2000 - 3000 kg (7-8% Fat)',
+        traits: ['Jet black coat', 'Tightly curled spiral horns', 'Heavy compact frame', 'Large prominent udder'],
+        desc: 'Murrah is the premier dairy buffalo breed of the world, often called "Black Gold" in Indian dairy farming. It is famous for high milk production with rich butterfat and docile behavior.',
+        image: { uri: 'https://images.unsplash.com/photo-1570042225831-d98fa7577f1e?auto=format&fit=crop&q=80&w=600' }
+    },
+    'Jaffrabadi': {
+        id: '51',
+        name: 'Jaffrabadi',
+        type: 'Buffalo',
+        origin: 'Gujarat (Gir forest & Saurashtra)',
+        milkYield: '2200 - 3000 kg (7.5-8.5% Fat)',
+        traits: ['Heaviest Indian buffalo', 'Massive drooping horns', 'Prominent forehead hook', 'Thick black skin'],
+        desc: 'Jaffrabadi is the heaviest of all Indian buffalo breeds, originating in the coastal Saurashtra and Gir forest tracts. It produces very high butterfat milk and thrives in semi-marshy forest conditions.',
+        image: { uri: 'https://images.unsplash.com/photo-1546445317-29f4545e9d53?auto=format&fit=crop&q=80&w=600' }
+    },
+    'Bhadawari': {
+        id: '52',
+        name: 'Bhadawari',
+        type: 'Buffalo',
+        origin: 'Uttar Pradesh (Agra, Etawah) & Madhya Pradesh',
+        milkYield: '1200 - 1600 kg (8-13% Fat)',
+        traits: ['Copper-colored coat', 'Two white neck collars (Janehar)', 'Light brown eyes', 'Extremely high fat'],
+        desc: 'Bhadawari buffaloes are renowned for having the highest milk butterfat percentage (up to 13%) among all bovine breeds worldwide. They are highly efficient converters of coarse fibrous roughage.',
+        image: { uri: 'https://images.unsplash.com/photo-1570042225831-d98fa7577f1e?auto=format&fit=crop&q=80&w=600' }
+    },
+    'Mehsana': {
+        id: '53',
+        name: 'Mehsana',
+        type: 'Buffalo',
+        origin: 'Gujarat (Mehsana, Sabarkantha)',
+        milkYield: '1800 - 2400 kg (7% Fat)',
+        traits: ['Medium-sized compact body', 'Sickle to curved horns', 'Early maturity', 'Regular breeding cycle'],
+        desc: 'Mehsana is an economical dairy buffalo breed resulting from crossbreeding between Murrah and Surti buffaloes. Celebrated by Gujarat dairy cooperatives for persistent milk yields and short dry periods.',
+        image: { uri: 'https://images.unsplash.com/photo-1546445317-29f4545e9d53?auto=format&fit=crop&q=80&w=600' }
+    },
+    'Nili_Ravi': {
+        id: '54',
+        name: 'Nili-Ravi',
+        type: 'Buffalo',
+        origin: 'Punjab (Sutlej & Ravi river valleys)',
+        milkYield: '1800 - 2600 kg (6.5-7.5% Fat)',
+        traits: ['Panj Kalyan (5 white markings)', 'Wall/blue eyes', 'Deep compact body', 'Broad forehead'],
+        desc: 'Nili-Ravi is distinguished by its classic "Panj Kalyan" white markings on the forehead, muzzle, all four legs, and tail switch. It is a prized dairy breed known for sweet, high-fat milk.',
+        image: { uri: 'https://images.unsplash.com/photo-1570042225831-d98fa7577f1e?auto=format&fit=crop&q=80&w=600' }
+    },
+    'Surti': {
+        id: '55',
+        name: 'Surti',
+        type: 'Buffalo',
+        origin: 'Gujarat (Kaira & Baroda districts)',
+        milkYield: '1600 - 2000 kg (7-8% Fat)',
+        traits: ['Rusty brown/black coat', 'Flat sickle-shaped horns', 'Two white chevrons on brisket', 'Medium compact size'],
+        desc: 'Surti is an ideal dairy breed for small and marginal farmers due to its moderate feed requirement, docile temperament, and high butterfat yield in the Charottar tract of Gujarat.',
+        image: { uri: 'https://images.unsplash.com/photo-1570042225831-d98fa7577f1e?auto=format&fit=crop&q=80&w=600' }
+    },
+    'Banni': {
+        id: '56',
+        name: 'Banni',
+        type: 'Buffalo',
+        origin: 'Gujarat (Kutch Banni grasslands)',
+        milkYield: '2000 - 2800 kg',
+        traits: ['Nocturnal grazing behavior', 'Heat & drought resistant', 'Coiled horns', 'Hardy constitution'],
+        desc: 'Banni buffaloes of the arid Kutch desert graze at night to escape daytime desert temperatures. Officially registered as India 11th distinct buffalo breed with exceptional heat resilience.',
+        image: { uri: 'https://images.unsplash.com/photo-1546445317-29f4545e9d53?auto=format&fit=crop&q=80&w=600' }
+    },
+    'Nagpuri': {
+        id: '57',
+        name: 'Nagpuri',
+        type: 'Buffalo',
+        origin: 'Maharashtra (Vidarbha region)',
+        milkYield: '1000 - 1500 kg',
+        traits: ['Very long sword-like flat horns', 'Black coat', 'Heat resistant', 'Dual-purpose (Milk & Draught)'],
+        desc: 'Also called Elichpuri or Barari, Nagpuri buffaloes possess dramatic flat horns sweeping backwards past the shoulders. Valued across Maharashtra for dual-purpose farming in high summer heat.',
+        image: { uri: 'https://images.unsplash.com/photo-1570042225831-d98fa7577f1e?auto=format&fit=crop&q=80&w=600' }
+    },
+    'Toda': {
+        id: '58',
+        name: 'Toda',
+        type: 'Buffalo',
+        origin: 'Tamil Nadu (Nilgiri Hills)',
+        milkYield: '500 kg',
+        traits: ['Wide crescent horns', 'Fawn hair in calves', 'Agile hill climber', 'Semi-wild sacred breed'],
+        desc: 'Toda buffaloes are indigenous to the high-altitude Nilgiri plateau of Tamil Nadu, reverentially maintained by the pastoral Toda tribe. Exceptional immunity and cliff-climbing agility.',
+        image: { uri: 'https://images.unsplash.com/photo-1570042225831-d98fa7577f1e?auto=format&fit=crop&q=80&w=600' }
+    },
+    'Alambadi': {
+        id: '59',
+        name: 'Alambadi',
+        type: 'Cattle',
+        origin: 'Tamil Nadu (Dharmapuri & Krishnagiri)',
+        milkYield: 'Low (Draft)',
+        traits: ['Grey to dark grey', 'Backward sweeping horns', 'Compact agile body', 'Quick trotting gait'],
+        desc: 'Alambadi is an active draught cattle breed native to the hilly tracts along the Kaveri river basin in Tamil Nadu, closely related to the Hallikar breed.',
+        image: { uri: 'https://images.unsplash.com/photo-1570042225831-d98fa7577f1e?auto=format&fit=crop&q=80&w=600' }
     }
 };
 

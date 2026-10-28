@@ -15,6 +15,7 @@ import { AgriColors } from '../../constants/theme';
 import { BREED_DATA, DEFAULT_BREED } from '../../constants/breedData';
 import { ResponsiveShell } from '../../components/ResponsiveShell';
 import { useTranslation } from '../../locales/i18n';
+import { BreedVideosSection } from '../../components/BreedVideosSection';
 
 export default function ResultHighScreen() {
   const router = useRouter();
@@ -30,7 +31,7 @@ export default function ResultHighScreen() {
 
   const handleScanAgain = () => {
     resetScan();
-    router.replace('/(tabs)/index' as any);
+    router.replace('/(tabs)/scanner' as any);
   };
 
   const handleSaveAndGoHome = () => {
@@ -137,6 +138,9 @@ export default function ResultHighScreen() {
                 <Text style={styles.metaMiniVal}>{breedInfo.type || 'Indigenous'}</Text>
               </View>
             </View>
+
+            {/* Livestock Care & Management Videos (YouTube) */}
+            <BreedVideosSection breedName={topPrediction.breed} />
 
             {/* Action Buttons */}
             <View style={styles.buttonsGroup}>

@@ -59,8 +59,22 @@ export const classifyBreed = async (imageUri: string, mobile: string = "12345678
             formData.append('file', blob, 'cattle_scan.jpg');
             formData.append('mobile', mobile);
 
-            const response = await axios.post(`${DEV_BACKEND_URL}/predict`, formData);
-            return response.data.predictions;
+            try {
+                const res = await fetch(`${DEV_BACKEND_URL}/predict`, {
+                    method: 'POST',
+                    body: formData,
+                });
+                if (!res.ok) {
+                    const errText = await res.text();
+                    throw new Error(`HTTP ${res.status}: ${errText}`);
+                }
+                const data = await res.json();
+                return data.predictions || [];
+            } catch (webErr) {
+                console.warn('Fetch upload failed, trying axios fallback:', webErr);
+                const response = await axios.post(`${DEV_BACKEND_URL}/predict`, formData);
+                return response.data.predictions || [];
+            }
         }
 
         const response = await uploadAsync(`${DEV_BACKEND_URL}/predict`, imageUri, {
@@ -226,5 +240,35 @@ export const getAdminUsers = async (): Promise<any> => {
         console.error('Admin Users Error:', error);
         throw error;
     }
+};
+
+// --- Breed Intelligence, Audio Narration (gTTS), and YouTube Care Videos ---
+
+export const getBreedSummary = async (breedName: string, lang: string = 'en'): Promise<any> => {
+    try {
+        const response = await api.get(`/breeds/${encodeURIComponent(breedName)}/summary`, {
+            params: { lang }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Get Breed Summary Error:', error);
+        return null;
+    }
+};
+
+export const getBreedVideos = async (breedName: string, limit: number = 5): Promise<any[]> => {
+    try {
+        const response = await api.get(`/breeds/${encodeURIComponent(breedName)}/videos`, {
+            params: { limit }
+        });
+        return response.data?.videos || [];
+    } catch (error) {
+        console.error('Get Breed Videos Error:', error);
+        return [];
+    }
+};
+
+export const getBreedAudioUrl = (breedName: string, lang: string = 'hi'): string => {
+    return `${DEV_BACKEND_URL}/breeds/${encodeURIComponent(breedName)}/audio?lang=${lang}`;
 };
 
