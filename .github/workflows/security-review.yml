@@ -12,27 +12,27 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Stage 1: Checkout Repository
+      - name: 'Stage 1 - Checkout Repository'
         uses: actions/checkout@v4
 
-      - name: Stage 2: Setup Python Environment
+      - name: 'Stage 2 - Setup Python Environment'
         uses: actions/setup-python@v4
         with:
           python-version: '3.12'
 
-      - name: Stage 3: Install Audit Dependencies
+      - name: 'Stage 3 - Install Audit Dependencies'
         run: |
           pip install openpyxl requests
 
-      - name: Stage 4: Run Backend Discovery & Security Tests (400+ Test Cases)
+      - name: 'Stage 4 - Run Backend Discovery & Security Tests (400+ Test Cases)'
         run: |
           python automation/security/build_all_security_deliverables.py
 
-      - name: Stage 5: Execute Baseline Concurrent Load Test (100 VUs, 1 Min)
+      - name: 'Stage 5 - Execute Baseline Concurrent Load Test (100 VUs, 1 Min)'
         run: |
           python automation/run_baseline_load_test.py
 
-      - name: Stage 6: Upload Security & Performance Artifacts
+      - name: 'Stage 6 - Upload Security & Performance Artifacts'
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -42,7 +42,7 @@ jobs:
           if-no-files-found: ignore
           retention-days: 30
 
-      - name: Stage 7: Publish GitHub Action Summary
+      - name: 'Stage 7 - Publish GitHub Action Summary'
         if: always()
         run: |
           cat "Vulnerability Test Results/performance-report.md" >> $GITHUB_STEP_SUMMARY

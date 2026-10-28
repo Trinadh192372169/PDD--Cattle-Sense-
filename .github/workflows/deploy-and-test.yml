@@ -12,29 +12,26 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Stage 1: Checkout Repository
+      - name: 'Stage 1 - Checkout Repository'
         uses: actions/checkout@v4
 
-      - name: Stage 2: Setup Node.js Environment
+      - name: 'Stage 2 - Setup Node.js Environment'
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Stage 3: Build & Deployment Verification
+      - name: 'Stage 3 - Live Deployment Verification'
         run: |
-          echo "======================================================================"
-          echo "        STAGE 3: LIVE GITHUB PAGES DEPLOYMENT VERIFICATION           "
-          echo "======================================================================"
           echo "Target URL: https://Trinadh192372169.github.io/PDD--Cattle-Sense-/"
           echo "Status: HTTP 200 OK - Production Assets Verified"
 
-      - name: Stage 4: Execute Node.js Selenium E2E Test Suite (400+ Test Cases)
+      - name: 'Stage 4 - Execute Selenium Web E2E Test Suite (400+ Test Cases)'
         run: |
           cd automation/selenium-nodejs
           npm install --no-audit
           node runner.js
 
-      - name: Stage 5: Upload Selenium Test & Excel Artifacts
+      - name: 'Stage 5 - Upload Selenium Test Artifacts'
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -46,7 +43,7 @@ jobs:
           if-no-files-found: ignore
           retention-days: 30
 
-      - name: Stage 6: Publish GitHub Actions Job Summary
+      - name: 'Stage 6 - Publish GitHub Actions Job Summary'
         if: always()
         run: |
           echo "# Live GitHub Pages Selenium E2E Execution Summary" >> $GITHUB_STEP_SUMMARY

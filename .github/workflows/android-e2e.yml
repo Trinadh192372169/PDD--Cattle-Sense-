@@ -12,29 +12,26 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Stage 1: Checkout Repository
+      - name: 'Stage 1 - Checkout Repository'
         uses: actions/checkout@v4
 
-      - name: Stage 2: Setup Node.js Environment
+      - name: 'Stage 2 - Setup Node.js Environment'
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Stage 3: Android APK Build & Environment Readiness
+      - name: 'Stage 3 - Android APK Build & Environment Readiness'
         run: |
-          echo "======================================================================"
-          echo "      STAGE 3: ANDROID BUILD & APPIUM EMULATOR READINESS              "
-          echo "======================================================================"
           echo "Target Package: com.cattlesense.app (Android 13 / API 33)"
           echo "Appium Server: Port 4723 (UiAutomator2 Engine) - OK"
 
-      - name: Stage 4: Execute Appium Mobile E2E Test Suite (400+ Test Cases)
+      - name: 'Stage 4 - Execute Appium Mobile E2E Test Suite (400+ Test Cases)'
         run: |
           cd automation/appium-mobile
           npm install --no-audit
           node runner.js
 
-      - name: Stage 5: Upload Appium Mobile & Excel Artifacts
+      - name: 'Stage 5 - Upload Appium Mobile & Excel Artifacts'
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -45,7 +42,7 @@ jobs:
           if-no-files-found: ignore
           retention-days: 30
 
-      - name: Stage 6: Publish GitHub Actions Job Summary
+      - name: 'Stage 6 - Publish GitHub Actions Job Summary'
         if: always()
         run: |
           echo "# Android Appium E2E Execution Summary" >> $GITHUB_STEP_SUMMARY
